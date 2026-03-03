@@ -1,32 +1,31 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* --- Enable Tailwind CSS --- */
+@import "tailwindcss";
 
 /* --- Reset Default Margins --- */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100dvh;
+  height: 100%;
 }
 
 /* --- Global Theme Variables --- */
 @theme {
   --font-sans: "Manrope", sans-serif;
   
-  --color-primary: #2D6A4F;    /* Dark Green */
-  --color-secondary: #95D5B2;  /* Light Green */
-  --color-accent: #52a780;     /* Medium Green */
+  --color-primary: #2D6A4F;   /* Dark Green */
+  --color-secondary: #95D5B2; /* Light Green (Prefer set it to 20% opacity.) */
 
-  --color-charcoal: #1B1B1B;   /* Charcoal for Text */
-  --color-foreground: #6B7280; /* Foreground Text */
+  --color-textBlack: #1B1B1B; /* Black Text (Topic / Title) */
+  --color-textGrey: #6B7280;  /* Grey Text (Body Text / Description) */
 
   --color-background: #F8F9FA; /* Light Gray Background */
+  --color-foreground: #6B7280; /* Slightly Darker Gray for Foreground Elements (Navigation Bar / Input Field) */
   --color-surface: #FFFFFF;    /* White Surface */
 }
 
 body {
-  font-family: var(--font-sans); /* Default Font */
-  background-color: var(--color-background); 
-  color: var(--color-foreground);
+  font-family: var(--font-sans);             /* Default Font (Manrope) */
+  background-color: var(--color-background); /* Light Gray Background */
+  color: var(--color-textBlack);             /* Default Text Color (Black) */
 }

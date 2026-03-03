@@ -1,6 +1,6 @@
-import Header from "@/components/layout/Header";
 import "./globals.css";
-import { link } from "fs/promises";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 // --- Metadata ---
 export const metadata = {
@@ -23,7 +23,8 @@ export default function RootLayout({
 
         <body className="antialiased">
             <Header />
-            <main>{children}</main> {/*Pass the content in "page.tsx" as children to the layout*/}
+            <main>{children}</main> {/* Pass the content in "page.tsx" as children to the layout */}
+            <Footer />
         </body>
 
     </html>
