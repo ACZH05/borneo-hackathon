@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Reset Default Margins --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* --- Global Theme Variables --- */
+@theme {
+  --font-sans: "Manrope", sans-serif;
+  
+  --color-primary: #2D6A4F;    /* Dark Green */
+  --color-secondary: #95D5B2;  /* Light Green */
+  --color-accent: #52a780;     /* Medium Green */
+
+  --color-charcoal: #1B1B1B;   /* Charcoal for Text */
+  --color-foreground: #6B7280; /* Foreground Text */
+
+  --color-background: #F8F9FA; /* Light Gray Background */
+  --color-surface: #FFFFFF;    /* White Surface */
+}
+
+body {
+  font-family: var(--font-sans); /* Default Font */
+  background-color: var(--color-background); 
+  color: var(--color-foreground);
+}
