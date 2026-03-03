@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String?  @unique
+  name        String?
+  role        String   @default("resident") // Options: resident | admin
+  regionCode  String?
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  alerts      Alert[]            @relation("UserAlerts")
+  reports     IncidentReport[]
+  cards       RescueCard[]
+  plans       EmergencyPlan[]
+  completions LessonCompletion[]
+}
+
+// Pillar 1: Crisis Action (Reports & Rescue)
+model IncidentReport {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  lat         Float
+  lng         Float
+  hazardType  String   // e.g., flood, landslide
+  description String
+  status      String   @default("new") // Options: new | reviewing | resolved
+  aiTriage    Json?    // Stores the AI's suggested severity, tags, and actions
+  createdAt   DateTime @default(now())
+}
+
+model RescueCard {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  lat               Float
+  lng               Float
+  emergencyContacts Json?    // Array of contact objects
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+}
+
+// Pillar 2: Real-Time Monitoring (Alerts)
+model Alert {
+  id           String   @id @default(uuid())
+  createdBy    String
+  creator      User     @relation("UserAlerts", fields: [createdBy], references: [id])
+  regionCode   String
+  hazardType   String   // e.g., flood, landslide
+  severity     String   // Options: info | watch | warning
+  title        String
+  body         String
+  notes        String 
+  createdAt    DateTime @default(now())
+}
+
+// Pillar 3: Disaster Preparedness (E-Learning & Plans)
+model EmergencyPlan {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  hazardType  String
+  planDetails Json     // Stores the AI-generated checklists
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Lesson {
+  id           String   @id @default(uuid())
+  topic        String
+  hazardType   String
+  content      String
+  quiz         Json     // Stores the AI-generated quiz questions
+  createdAt    DateTime @default(now())
+  
+  completions  LessonCompletion[]
+}
+
+model LessonCompletion {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  score       Float?
+  completedAt DateTime @default(now())
+
+  @@unique([userId, lessonId]) // Ensures a user can only have one completion record per lesson
+}
