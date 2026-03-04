@@ -21,9 +21,9 @@ export default function RootLayout({
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"/> {/* Import Google Material Symbols font for icons. */}
         </head>
 
-        <body className="antialiased">
+        <body className="antialiased flex flex-col min-h-screen">
             <Header />
-            <main>{children}</main> {/* Pass the content in "page.tsx" as children to the layout */}
+            <main className="flex-1">{children}</main> {/* Pass the content in "page.tsx" as children to the layout */}
             <Footer />
         </body>
 

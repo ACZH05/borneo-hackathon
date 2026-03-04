@@ -17,10 +17,10 @@ export default function Header() {
   const pathname = usePathname(); 
 
   return (
-    <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm min-w-screen px-4 py-4">
+    <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm min-w-screen px-8 py-4">
       {/* --- Left Side --- */}
       <div className="flex items-center justify-center gap-3">
-        {/* --- Drawer for Mobile --- */}
+        {/* --- Drawer for Mobile --- */} {/* Show only on mobile. */}
         <Drawer />
 
         {/* --- Logo --- */}
@@ -51,6 +51,7 @@ export default function Header() {
         ))}
       </nav>
 
+      {/* --- Right Side --- */} {/* Always show on all screen sizes although wrapped. */}
       <div className="flex gap-4 ml-auto">
         {/* --- Search Bar --- */} {/* Show only on desktop. */}
         <div className="hidden xl:flex items-center rounded-full bg-foreground/8 border-none px-3 py-1"> 
