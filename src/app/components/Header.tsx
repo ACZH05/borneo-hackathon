@@ -7,10 +7,10 @@ import { JSX, useState } from "react";
 // --- Navigation Link List ---
 const navLinks = [
   { name: "Home", href: "/" },
-  { name: "Alerts", href: "/alerts" },
-  { name: "Resources", href: "/resources" },
-  { name: "Supports", href: "/supports" },
-  { name: "Settings", href: "/settings" },
+  { name: "Alerts", href: "/page-alerts" },
+  { name: "Resources", href: "/page-resources" },
+  { name: "Supports", href: "/page-supports" },
+  { name: "Settings", href: "/page-settings" },
 ];
 
 export default function Header() {
@@ -36,7 +36,7 @@ export default function Header() {
       </div>
 
       {/* --- Middle Navigation Links --- */} {/* Show only on desktop. */}
-      <nav className="hidden xl:flex items-center gap-1 rounded-full bg-foreground/3 px-1 py-1">
+      <nav className="hidden xl:flex items-center gap-1 rounded-full bg-foreground/3 px-1 py-1 ml-auto">
         {navLinks.map((link) => (
           <Link
             href={link.href}
