@@ -1,4 +1,4 @@
-import AlertHeader from "@/components/ui/alerts/Alert-Header";
+import AlertHeader from "@/app/alerts/components/Alert-Header";
 
 export default function AlertsPage() {
   return (

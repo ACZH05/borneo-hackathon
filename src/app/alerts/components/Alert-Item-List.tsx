@@ -1,7 +1,7 @@
 "use client";
 
-import { filterOptions } from "@/components/ui/alerts/Alert-Filter";
-import { AlertItemInfo } from "@/components/ui/alerts/Alert-Item-Info";
+import { filterOptions } from "@/app/alerts/components/Alert-Filter";
+import { AlertItemInfo } from "@/app/alerts/components/Alert-Item-Info";
 
 export default function AlertItem(item: AlertItemInfo) {
     // --- Color Scheme Based on Priority ---
