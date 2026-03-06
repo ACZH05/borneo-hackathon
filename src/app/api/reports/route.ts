@@ -21,6 +21,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+// --- 1. GOOGLE MAPS REVERSE GEOCODING ---
+    let formattedAddress = "Address not found";
+    if (process.env.GOOGLE_MAPS_API_KEY) {
+      try {
+        const geoRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAPS_API_KEY}`);
+        const geoData = await geoRes.json();
+        
+        if (geoData.status === "OK" && geoData.results.length > 0) {
+          formattedAddress = geoData.results[0].formatted_address;
+          console.log("Geocoding success:", formattedAddress);
+        }
+      } catch (geoError) {
+        console.error("Geocoding failed, but continuing:", geoError);
+      }
+    }
+
     // 3. ASK GEMINI TO TRIAGE THE EMERGENCY
     let aiTriageData = null;
     try {
@@ -80,6 +96,7 @@ export async function POST(request: Request) {
         userId: defaultUser.id,
         lat: parseFloat(lat),
         lng: parseFloat(lng),
+        address: formattedAddress,
         hazardType: hazardType || 'unknown',
         description: description,
         status: 'new',
