@@ -20,7 +20,7 @@ model User {
   // Relationships
   alerts      Alert[]            @relation("UserAlerts")
   reports     IncidentReport[]
-  cards       RescueCard[]
+  rescueCard      RescueCard?
   plans       EmergencyPlan[]
   completions LessonCompletion[]
 }
@@ -41,14 +41,21 @@ model IncidentReport {
 }
 
 model RescueCard {
-  id                String   @id @default(uuid())
-  userId            String
-  user              User     @relation(fields: [userId], references: [id])
-  lat               Float
-  lng               Float
-  emergencyContacts Json?    // Array of contact objects
-  active            Boolean  @default(true)
-  createdAt         DateTime @default(now())
+  id                    String   @id @default(uuid())
+  userId                String   @unique // This makes it a One-to-One relation!
+  bloodType             String?
+  allergies             String?  // e.g., "Penicillin, Peanuts"
+  medicalConditions     String?  // e.g., "Asthma, Type 1 Diabetes"
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  homeLat               Float?   // Their safe home location
+  homeLng               Float?
+  updatedAt             DateTime @updatedAt
+
+  shareableUrl          String?
+  qrCodeData            String?  // Saves the image as a text string!
+  
+  user                  User     @relation(fields: [userId], references: [id])
 }
 
 // Pillar 2: Real-Time Monitoring (Alerts)
