@@ -1,55 +1,49 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg'; 
-
-// Initialize Database Adapter
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!, 
-});
-const prisma = new PrismaClient({ adapter });
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/auth";
 
 export async function PATCH(
   request: Request,
-  // 1. Tell TypeScript that params is a Promise now
-  { params }: { params: Promise<{ id: string }> } 
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 2. UNWRAP THE PROMISE (This is the Next.js 15+ fix!)
-    const resolvedParams = await params;
-    const reportId = resolvedParams.id;
+    await requireAdmin();
 
-    // 3. Get the new status from the Responder's request
+    const { id } = await params;
     const body = await request.json();
-    const { status } = body; 
+    const { status } = body;
 
     if (!status) {
       return NextResponse.json(
-        { error: "Missing required field: status" }, 
+        { error: "Missing required field: status" },
         { status: 400 }
       );
     }
 
-    // 4. Update the specific report in the database using the unwrapped ID
     const updatedReport = await prisma.incidentReport.update({
-      where: { 
-        id: reportId 
-      },
-      data: { 
-        status: status 
-      },
+      where: { id },
+      data: { status },
     });
 
-    // 5. Return success
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Report status updated successfully!',
-      report: updatedReport 
+    return NextResponse.json({
+      success: true,
+      message: "Report status updated successfully!",
+      report: updatedReport,
     });
-
   } catch (error) {
-    console.error('Error updating SOS report:', error);
+    const message =
+      error instanceof Error ? error.message : "Failed to update report";
+
+    if (message === "Unauthorized") {
+      return NextResponse.json({ error: message }, { status: 401 });
+    }
+
+    if (message === "Forbidden") {
+      return NextResponse.json({ error: message }, { status: 403 });
+    }
+
     return NextResponse.json(
-      { error: 'Failed to update report' }, 
+      { error: "Failed to update report" },
       { status: 500 }
     );
   }

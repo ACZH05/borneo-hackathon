@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation"; 
 import { JSX, useState } from "react";
+import AuthButtons from "./AuthButtons";
 
 // --- Navigation Link List ---
 const navLinks = [
@@ -60,7 +61,7 @@ export default function Header() {
         </div>
         
         {/* --- Login Button --- */}
-        <button className="flex items-center justify-center rounded-full border-primary border-2 text-primary font-bold px-5 py-1 transition-all duration-300 hover:bg-primary hover:text-white">Log in</button>
+        <AuthButtons />
       </div>
     </header>
   );

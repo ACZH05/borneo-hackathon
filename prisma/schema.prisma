@@ -1,84 +1,76 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
-  id          String   @id @default(uuid())
+  id          String   @id @db.Uuid
   email       String?  @unique
   name        String?
-  role        String   @default("resident") // Options: resident | admin
+  role        String   @default("resident") // resident | admin
   regionCode  String?
   createdAt   DateTime @default(now())
 
-  // Relationships
   alerts      Alert[]            @relation("UserAlerts")
   reports     IncidentReport[]
-  rescueCard      RescueCard?
+  rescueCard  RescueCard?
   plans       EmergencyPlan[]
   completions LessonCompletion[]
 }
 
-// Pillar 1: Crisis Action (Reports & Rescue)
 model IncidentReport {
   id          String   @id @default(uuid())
-  userId      String
+  userId      String   @db.Uuid
   user        User     @relation(fields: [userId], references: [id])
   lat         Float
   lng         Float
   address     String?
-  hazardType  String   // e.g., flood, landslide
+  hazardType  String
   description String
-  status      String   @default("new") // Options: new | reviewing | resolved
-  aiTriage    Json?    // Stores the AI's suggested severity, tags, and actions
+  status      String   @default("new")
+  aiTriage    Json?
   createdAt   DateTime @default(now())
 }
 
 model RescueCard {
   id                    String   @id @default(uuid())
-  userId                String   @unique // This makes it a One-to-One relation!
+  userId                String   @unique @db.Uuid
   bloodType             String?
-  allergies             String?  // e.g., "Penicillin, Peanuts"
-  medicalConditions     String?  // e.g., "Asthma, Type 1 Diabetes"
+  allergies             String?
+  medicalConditions     String?
   emergencyContactName  String?
   emergencyContactPhone String?
-  homeLat               Float?   // Their safe home location
+  homeLat               Float?
   homeLng               Float?
   updatedAt             DateTime @updatedAt
-
   shareableUrl          String?
-  qrCodeData            String?  // Saves the image as a text string!
-  
+  qrCodeData            String?
+
   user                  User     @relation(fields: [userId], references: [id])
 }
 
-// Pillar 2: Real-Time Monitoring (Alerts)
 model Alert {
   id           String   @id @default(uuid())
-  createdBy    String
+  createdBy    String   @db.Uuid
   creator      User     @relation("UserAlerts", fields: [createdBy], references: [id])
   regionCode   String
-  hazardType   String   // e.g., flood, landslide
-  severity     String   // Options: info | watch | warning
+  hazardType   String
+  severity     String
   title        String
   body         String
-  notes        String 
+  notes        String
   createdAt    DateTime @default(now())
 }
 
-// Pillar 3: Disaster Preparedness (E-Learning & Plans)
 model EmergencyPlan {
   id          String   @id @default(uuid())
-  userId      String
+  userId      String   @db.Uuid
   user        User     @relation(fields: [userId], references: [id])
   hazardType  String
-  planDetails Json     // Stores the AI-generated checklists
+  planDetails Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -88,20 +80,20 @@ model Lesson {
   topic        String
   hazardType   String
   content      String
-  quiz         Json     // Stores the AI-generated quiz questions
+  quiz         Json
   createdAt    DateTime @default(now())
-  
+
   completions  LessonCompletion[]
 }
 
 model LessonCompletion {
   id          String   @id @default(uuid())
-  userId      String
+  userId      String   @db.Uuid
   user        User     @relation(fields: [userId], references: [id])
   lessonId    String
   lesson      Lesson   @relation(fields: [lessonId], references: [id])
   score       Float?
   completedAt DateTime @default(now())
 
-  @@unique([userId, lessonId]) // Ensures a user can only have one completion record per lesson
+  @@unique([userId, lessonId])
 }

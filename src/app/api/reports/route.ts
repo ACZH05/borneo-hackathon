@@ -1,49 +1,55 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg'; 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 
-// 1. Initialize Database Adapter
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!, 
-});
-const prisma = new PrismaClient({ adapter });
-
-// 2. Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { lat, lng, hazardType, description } = body;
 
-    if (!lat || !lng || !description) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (lat == null || lng == null || !description) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-// --- 1. GOOGLE MAPS REVERSE GEOCODING ---
     let formattedAddress = "Address not found";
+
     if (process.env.GOOGLE_MAPS_API_KEY) {
       try {
-        const geoRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAPS_API_KEY}`);
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+        );
         const geoData = await geoRes.json();
-        
+
         if (geoData.status === "OK" && geoData.results.length > 0) {
           formattedAddress = geoData.results[0].formatted_address;
-          console.log("Geocoding success:", formattedAddress);
         }
       } catch (geoError) {
-        console.error("Geocoding failed, but continuing:", geoError);
+        console.error("Geocoding failed:", geoError);
       }
     }
 
-    // 3. ASK GEMINI TO TRIAGE THE EMERGENCY
     let aiTriageData = null;
+
     try {
-      // We use the flash model because it is incredibly fast
-      const model = genAI.getGenerativeModel({ 
+      const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
-        generationConfig: { responseMimeType: "application/json" } // Force clean JSON
+        generationConfig: { responseMimeType: "application/json" },
       });
 
       const prompt = `
@@ -70,63 +76,75 @@ export async function POST(request: Request) {
                         `;
 
       const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
-      
-      aiTriageData = JSON.parse(responseText);
-      console.log("Gemini Triage successful:", aiTriageData); 
+      aiTriageData = JSON.parse(result.response.text());
     } catch (aiError) {
-      console.error("Gemini Triage failed, but saving report anyway:", aiError);
+      console.error("Gemini failed:", aiError);
     }
 
-    // 4. Default User Setup (attention need to modify)
-    const defaultUser = await prisma.user.upsert({
-      where: { email: 'test@borneo.local' },
-      update: {},
+    await prisma.user.upsert({
+      where: { id: user.id },
+      update: {
+        email: user.email ?? undefined,
+        name: (user.user_metadata?.name as string | undefined) ?? undefined,
+        regionCode:
+          (user.user_metadata?.regionCode as string | undefined) ?? undefined,
+      },
       create: {
-        email: 'test@borneo.local',
-        name: 'Test Resident',
-        role: 'resident',
-        regionCode: 'MY-01', 
+        id: user.id,
+        email: user.email ?? null,
+        name: (user.user_metadata?.name as string | undefined) ?? null,
+        regionCode:
+          (user.user_metadata?.regionCode as string | undefined) ?? null,
+        role: "resident",
       },
     });
 
-    // 5. Save to Database WITH the Gemini AI data
     const report = await prisma.incidentReport.create({
       data: {
-        userId: defaultUser.id,
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
+        userId: user.id,
+        lat: Number(lat),
+        lng: Number(lng),
         address: formattedAddress,
-        hazardType: hazardType || 'unknown',
-        description: description,
-        status: 'new',
+        hazardType: hazardType || "unknown",
+        description,
+        status: "new",
         aiTriage: aiTriageData,
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'SOS Report analyzed and saved!',
-      report 
-    }, { status: 201 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "SOS Report analyzed and saved!",
+        report,
+      },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error('Error creating SOS report:', error);
-    return NextResponse.json({ error: 'Failed to submit SOS report' }, { status: 500 });
+    console.error("Error creating SOS report:", error);
+    return NextResponse.json(
+      { error: "Failed to submit SOS report" },
+      { status: 500 }
+    );
   }
 }
 
-// Keep the GET route exactly the same!
 export async function GET() {
   try {
     const reports = await prisma.incidentReport.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { name: true, regionCode: true } }
-      }
+        user: {
+          select: { name: true, regionCode: true, email: true },
+        },
+      },
     });
+
     return NextResponse.json({ success: true, reports });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch reports" },
+      { status: 500 }
+    );
   }
 }
