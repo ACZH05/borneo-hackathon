@@ -32,6 +32,7 @@ model IncidentReport {
   user        User     @relation(fields: [userId], references: [id])
   lat         Float
   lng         Float
+  address     String?
   hazardType  String   // e.g., flood, landslide
   description String
   status      String   @default("new") // Options: new | reviewing | resolved
