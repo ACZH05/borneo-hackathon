@@ -15,9 +15,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { lat, lng, hazardType, description } = body;
+    // 1. Add userId to the extracted body data
+    const { userId, lat, lng, hazardType, description } = body;
 
-    if (!lat || !lng || !description) {
+    // 2. Require the userId to be present
+    if (!userId || !lat || !lng || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -79,21 +81,16 @@ export async function POST(request: Request) {
     }
 
     // 4. Default User Setup (attention need to modify)
-    const defaultUser = await prisma.user.upsert({
-      where: { email: 'test@borneo.local' },
-      update: {},
-      create: {
-        email: 'test@borneo.local',
-        name: 'Test Resident',
-        role: 'resident',
-        regionCode: 'MY-01', 
-      },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    
+    if (!user) {
+      return NextResponse.json({ error: "User not found. Please log in." }, { status: 404 });
+    }
 
     // 5. Save to Database WITH the Gemini AI data
     const report = await prisma.incidentReport.create({
       data: {
-        userId: defaultUser.id,
+        userId: user.id,
         lat: parseFloat(lat),
         lng: parseFloat(lng),
         address: formattedAddress,

@@ -53,27 +53,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-// 1. CREATE A COMPACT MEDICAL STRING FOR THE QR CODE
-    // This format is designed to be easily read by any scanner even offline
-const medicalDataString = `
-                                ━━━━━━━━━━━━━━━
-                                🚑 BORNEO RESCUE CARD 🚑
-                                ━━━━━━━━━━━━━━━
-                                👤 USER: ${email}
-                                🩸 BLOOD: ${bloodType || 'N/A'}
-                                ⚠️ ALLERGIES: ${allergies || 'NONE'}
-                                🏥 MEDICAL: ${medicalConditions || 'NONE'}
+    // --- 1. GOOGLE MAPS REVERSE GEOCODING ---
+    let formattedAddress = "Address not found";
+    if (homeLat && homeLng && process.env.GOOGLE_MAPS_API_KEY) {
+      try {
+        const geoRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${homeLat},${homeLng}&key=${process.env.GOOGLE_MAPS_API_KEY}`);
+        const geoData = await geoRes.json();
+        
+        if (geoData.status === "OK" && geoData.results.length > 0) {
+          formattedAddress = geoData.results[0].formatted_address;
+        }
+      } catch (geoError) {
+        console.error("Geocoding failed:", geoError);
+      }
+    }
 
-                                📞 EMERGENCY CONTACT:
-                                ${emergencyContactName}
-                                ${emergencyContactPhone}
-
-                                📍 HOME BASE:
-                                ${homeLat}, ${homeLng}
+    // --- 2. CREATE THE MEDICAL STRING (NOW WITH ADDRESS!) ---
+    const medicalDataString = `
 ━━━━━━━━━━━━━━━
-`.trim();
+🚑 BORNEO RESCUE CARD 🚑
+━━━━━━━━━━━━━━━
+👤 USER: ${email}
+🩸 BLOOD: ${bloodType || 'N/A'}
+⚠️ ALLERGIES: ${allergies || 'NONE'}
+🏥 MEDICAL: ${medicalConditions || 'NONE'}
 
-    // 2. GENERATE THE QR CODE CONTAINING THE DATA
+📞 EMERGENCY CONTACT:
+${emergencyContactName}
+${emergencyContactPhone}
+
+📍 HOME:
+${formattedAddress}
+━━━━━━━━━━━━━━━
+    `.trim();
+
+    // --- 3. GENERATE THE QR CODE ---
     let generatedQrCode = null;
     try {
       generatedQrCode = await QRCode.toDataURL(medicalDataString, {
@@ -85,24 +99,26 @@ const medicalDataString = `
       console.error("QR Error:", qrError);
     }
 
-    // 3. CREATE THE MAP URL (Separate field for convenience)
+    // --- 4. CREATE THE MAP URL (Using the universal Google Maps format) ---
     const googleMapsUrl = `https://www.google.com/maps?q=${homeLat},${homeLng}`;
 
-    // 4. UPSERT TO DATABASE
+    // --- 5. UPSERT TO DATABASE ---
     const rescueCard = await prisma.rescueCard.upsert({
       where: { userId: user.id },
       update: {
         bloodType, allergies, medicalConditions,
         emergencyContactName, emergencyContactPhone,
         homeLat, homeLng,
+        homeAddress: formattedAddress, // Saving the real address!
         shareableUrl: googleMapsUrl,
-        qrCodeData: generatedQrCode // Now contains the medical text!
+        qrCodeData: generatedQrCode 
       },
       create: {
         userId: user.id,
         bloodType, allergies, medicalConditions,
         emergencyContactName, emergencyContactPhone,
         homeLat, homeLng,
+        homeAddress: formattedAddress, // Saving the real address!
         shareableUrl: googleMapsUrl,
         qrCodeData: generatedQrCode
       }
@@ -110,6 +126,7 @@ const medicalDataString = `
 
     return NextResponse.json({ success: true, rescueCard });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    console.error("Rescue Card Error:", error);
+    return NextResponse.json({ error: 'Failed to create Rescue Card' }, { status: 500 });
   }
 }

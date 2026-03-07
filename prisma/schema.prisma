@@ -50,11 +50,12 @@ model RescueCard {
   emergencyContactPhone String?
   homeLat               Float?   // Their safe home location
   homeLng               Float?
+  homeAddress           String?
   updatedAt             DateTime @updatedAt
 
   shareableUrl          String?
   qrCodeData            String?  // Saves the image as a text string!
-  
+
   user                  User     @relation(fields: [userId], references: [id])
 }
 
