@@ -69,7 +69,12 @@ model Alert {
   severity     String   // Options: info | watch | warning
   title        String
   body         String
-  notes        String 
+  notes        String?  // Made optional just in case!
+  
+  // --- ADDED FOR MAP FEATURES ---
+  lat          Float?   
+  lng          Float?   
+  
   createdAt    DateTime @default(now())
 }
 

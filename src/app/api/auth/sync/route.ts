@@ -33,7 +33,7 @@ function getRegionCodeFromState(stateName: string): string {
     }
   }
   
-  // Fallback to Johor (MY-01) for the Kulai hackathon demo if it gets confused!
+  // Fallback to Kedah (MY-02) for the Kulai hackathon demo if it gets confused!
   return "MY-02"; 
 }
 
