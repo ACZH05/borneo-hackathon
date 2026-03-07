@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation"; 
 import { JSX, useState } from "react";
+import { AuthStatus, Login, Logout } from "@/app/api/auth/verification/route";
+import AuthWindow from "@/app/components/Auth-Window";
 
 // --- Navigation Link List ---
 const navLinks = [
@@ -14,7 +16,10 @@ const navLinks = [
 ];
 
 export default function Header() {
-  const pathname = usePathname(); 
+  const pathname = usePathname();
+
+  const [isAuthWindowOpen, setIsAuthWindowOpen] = useState(false); // State to control the visibility of the login window.
+  const { isLoggedIn, isLoading } = AuthStatus(); // Store the login state of the user.
 
   return (
     <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm min-w-screen px-8 py-4">
@@ -59,9 +64,40 @@ export default function Header() {
           <input placeholder="Find help..." className="rounded-full bg-transparent border-none outline-none placeholder:text-textGrey/60 placeholder:text-xs px-2"></input>
         </div>
         
-        {/* --- Login Button --- */}
-        <button className="flex items-center justify-center rounded-full border-primary border-2 text-primary font-bold px-5 py-1 transition-all duration-300 hover:bg-primary hover:text-white">Log in</button>
+        {/* --- Login / Logout Button --- */}
+        {isLoading 
+          ? (
+            // --- Skeleton Loader ---
+            // Avoid showing the login button until we know if the user is logged in or not to prevent confusion. 
+            // Show a skeleton loader instead to indicate that we're checking the login status.
+            <div className="w-22 h-9 rounded-full bg-foreground/10 animate-pulse"></div>
+          ) 
+          : isLoggedIn ? (
+            // --- Logout Button (If Already Login) ---
+            <button 
+              onClick={Logout}
+              title="Log out"
+              className="flex items-center justify-center rounded-full border-red-400 border-2 text-red-500 px-4 py-1 transition-all duration-300 hover:bg-red-500 hover:text-white"
+            >
+              <span className="material-symbols-outlined">logout</span>
+            </button>
+          ) 
+          : (
+            // --- Login Button (If Not Login) ---
+            <button 
+              onClick={() => setIsAuthWindowOpen(true)}
+              className="flex items-center justify-center rounded-full border-primary border-2 text-primary font-bold px-5 py-1 transition-all duration-300 hover:bg-primary hover:text-white"
+            >
+              Log in
+            </button>
+          )
+        }
       </div>
+
+      <AuthWindow
+        isOpen={isAuthWindowOpen}
+        onClose={() => setIsAuthWindowOpen(false)}
+      />
     </header>
   );
 }

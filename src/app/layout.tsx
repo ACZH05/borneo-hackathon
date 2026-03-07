@@ -1,4 +1,5 @@
 import "./globals.css";
+import AuthListener from "@/app/api/auth/verification/route";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 
@@ -22,11 +23,11 @@ export default function RootLayout({
         </head>
 
         <body className="antialiased flex flex-col min-h-screen">
+            <AuthListener />
             <Header />
             <main className="flex-1">{children}</main> {/* Pass the content in "page.tsx" as children to the layout */}
             <Footer />
         </body>
-
     </html>
   );
 }
