@@ -1,15 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AlertMode from "./Alert-Mode";
 import AlertFilter from "./Alert-Filter";
 import AlertItem from "./Alert-Item-List";
 import AlertItemMap from "./Alert-Item-Map";
-import { AlertItemList } from "./Alert-Item-Info";
+import { AlertItemInfo } from "./Alert-Item-Info"; // Import the type, not the dummy data
 
 export default function AlertHeader() {
     const [activeFilter, setActiveFilter] = useState("all"); // Active Filter State (Default to "All Threats")
     const [displayMode, setDisplayMode] = useState("list"); // "List" or "Map" Mode State (Default to "List")
+    
+    // --- NEW: Live Database States ---
+    const [alerts, setAlerts] = useState<AlertItemInfo[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // --- NEW: Fetch from API on Load ---
+    useEffect(() => {
+        const fetchAlerts = async () => {
+            try {
+                const response = await fetch('/api/alert');
+                const data = await response.json();
+                
+                if (data.success) {
+                    setAlerts(data.alerts); // Load real data into state!
+                }
+            } catch (error) {
+                console.error("Failed to fetch alerts:", error);
+            } finally {
+                setIsLoading(false); // Turn off loading spinner
+            }
+        };
+
+        fetchAlerts();
+    }, []);
 
     return (
         <div className="flex flex-col gap-10 p-10">
@@ -41,9 +65,16 @@ export default function AlertHeader() {
                 /* --- Alert List --- */
                 ? ( 
                     <div className="flex flex-col gap-4">
-                        {AlertItemList.filter((item) => activeFilter === "all" || item.category === activeFilter).map((item) => (
-                            <AlertItem key={item.topic} {...item} />
-                        ))}
+                        {isLoading ? (
+                            <div className="text-center font-bold text-textGrey py-10">Loading active alerts...</div>
+                        ) : alerts.length === 0 ? (
+                            <div className="text-center font-bold text-textGrey py-10">No active alerts at this time.</div>
+                        ) : (
+                            alerts.filter((item) => activeFilter === "all" || item.category === activeFilter).map((item, index) => (
+                                // Added fallback to index for the key just in case ID is missing
+                                <AlertItem key={(item as any).id || index} {...item} />
+                            ))
+                        )}
                     </div>
                 ) 
 
