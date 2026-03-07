@@ -7,7 +7,7 @@ import CallIcon from "@mui/icons-material/Call";
 export default class EmergencyDetailsComponent extends Component {
   render() {
     return (
-      <div className="flex flex-col bg-primary text-surface rounded-2xl p-4 gap-4">
+      <div className="flex flex-col bg-primary text-surface rounded-2xl p-4 gap-4 transition hover:-translate-1 cursor-pointer">
         <div className="flex justify-between font-bold">
           EMERGENCY DETAILS
           <ArrowForwardIosIcon />
