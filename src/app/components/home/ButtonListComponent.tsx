@@ -7,7 +7,6 @@ import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 
 import { useState } from "react";
 import {
-  Button,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -19,6 +18,14 @@ import {
 
 export default function ButtonListComponent() {
   const [isOpen, setIsOpen] = useState(false);
+  const [hazard, setHazard] = useState("");
+  const [description, setDescription] = useState("");
+
+  const handleSubmit = () => {
+    console.log(hazard);
+    console.log(description);
+  };
+
   const hazards = [
     { label: "Flood", value: "flood" },
     { label: "Landslide", value: "landslide" },
@@ -59,7 +66,10 @@ export default function ButtonListComponent() {
               <FormLabel id="hazard-type-selection">
                 What is the hazard type?
               </FormLabel>
-              <RadioGroup aria-labelledby="hazard-type-selection">
+              <RadioGroup
+                aria-labelledby="hazard-type-selection"
+                onChange={(e) => setHazard(e.target.value)}
+              >
                 <div className="grid grid-cols-2 grid-rows-2 gap-4">
                   {hazards.map((hazard) => (
                     <FormControlLabel
@@ -78,6 +88,7 @@ export default function ButtonListComponent() {
                 rows={4}
                 placeholder="Briefly describe your situation..."
                 fullWidth
+                onChange={(e) => setDescription(e.target.value)}
               />
 
               <div className="">
@@ -87,7 +98,10 @@ export default function ButtonListComponent() {
                 </span>
               </div>
 
-              <button className="bg-priority text-white py-4 rounded-xl shadow-2xl">
+              <button
+                className="bg-priority text-white py-4 rounded-xl shadow-2xl cursor-pointer"
+                onClick={() => handleSubmit()}
+              >
                 SEND SOS SIGNAL
               </button>
             </FormControl>
