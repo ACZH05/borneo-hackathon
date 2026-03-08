@@ -21,7 +21,6 @@ model User {
   alerts      Alert[]            @relation("UserAlerts")
   reports     IncidentReport[]
   rescueCard      RescueCard?
-  completions LessonCompletion[]
   emergencyPlans EmergencyPlan[]
 }
 
@@ -90,25 +89,3 @@ model EmergencyPlan {
   updatedAt   DateTime @updatedAt
 }
 
-model Lesson {
-  id           String   @id @default(uuid())
-  topic        String
-  hazardType   String
-  content      String
-  quiz         Json     // Stores the AI-generated quiz questions
-  createdAt    DateTime @default(now())
-  
-  completions  LessonCompletion[]
-}
-
-model LessonCompletion {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  lessonId    String
-  lesson      Lesson   @relation(fields: [lessonId], references: [id])
-  score       Float?
-  completedAt DateTime @default(now())
-
-  @@unique([userId, lessonId]) // Ensures a user can only have one completion record per lesson
-}

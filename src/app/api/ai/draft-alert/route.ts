@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       {
         "topic": "A short, professional title (e.g., Flood Advisory: Kulai Basin)",
         "priority": "Must be exactly one of: 'priority', 'warning', or 'monitor'",
-        "category": "Must be exactly one of: 'flood', 'landslide', 'tidal', or 'all'",
+        "category": "Must be exactly one of: 'flood', 'landslide', 'tidal', or 'other'",
         "english": "A professional 2-sentence description of the threat.",
         "malay": "The exact translation of the english text in Bahasa Melayu.",
         "chinese": "The exact translation of the english text in Simplified Chinese.",
