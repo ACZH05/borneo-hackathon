@@ -70,21 +70,21 @@ export async function POST(request: Request) {
 
     // --- 2. CREATE THE MEDICAL STRING (NOW WITH ADDRESS!) ---
     const medicalDataString = `
-━━━━━━━━━━━━━━━
-🚑 BORNEO RESCUE CARD 🚑
-━━━━━━━━━━━━━━━
-👤 USER: ${email}
-🩸 BLOOD: ${bloodType || 'N/A'}
-⚠️ ALLERGIES: ${allergies || 'NONE'}
-🏥 MEDICAL: ${medicalConditions || 'NONE'}
+                        ━━━━━━━━━━━━━━━
+                        🚑 BORNEO RESCUE CARD 🚑
+                        ━━━━━━━━━━━━━━━
+                        👤 USER: ${email}
+                        🩸 BLOOD: ${bloodType || 'N/A'}
+                        ⚠️ ALLERGIES: ${allergies || 'NONE'}
+                        🏥 MEDICAL: ${medicalConditions || 'NONE'}
 
-📞 EMERGENCY CONTACT:
-${emergencyContactName}
-${emergencyContactPhone}
+                        📞 EMERGENCY CONTACT:
+                        ${emergencyContactName}
+                        ${emergencyContactPhone}
 
-📍 HOME:
-${formattedAddress}
-━━━━━━━━━━━━━━━
+                        📍 HOME:
+                        ${formattedAddress}
+                        ━━━━━━━━━━━━━━━
     `.trim();
 
     // --- 3. GENERATE THE QR CODE ---
