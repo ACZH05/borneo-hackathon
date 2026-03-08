@@ -44,6 +44,7 @@ export default function Header() {
       <nav className="hidden xl:flex items-center gap-1 rounded-full bg-foreground/3 px-1 py-1 ml-auto">
         {navLinks.map((link) => (
           <Link
+            key={link.name}
             href={link.href}
             className={`rounded-full px-5 py-2 no-underline text-sm font-semibold transition-all ease-in-out duration-300 ${
               pathname === link.href
@@ -137,6 +138,7 @@ function Drawer() : JSX.Element {
         <nav className="flex flex-col">
           {navLinks.map((link) => (
             <Link
+              key={link.name}
               href={link.href}
               className={`text-sm font-bold px-4 py-3 ${
                 pathname === link.href 
