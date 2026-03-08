@@ -71,8 +71,11 @@ export default function AlertHeader() {
                             <div className="text-center font-bold text-textGrey py-10">Loading active alerts...</div>
                         ) : alerts.length === 0 ? (
                             <div className="text-center font-bold text-textGrey py-10">No active alerts at this time.</div>
-                        ) : (
-                            alerts.filter((item) => activeFilter === "all" || (activeFilter === "other" ? !["flood", "landslide", "tidal"].includes(item.hazardType) : item.hazardType === activeFilter)).map((item, index) => {
+                        ) : (() => {
+                            const filtered = alerts.filter((item) => activeFilter === "all" || (activeFilter === "other" ? !["flood", "landslide", "tidal"].includes(item.hazardType) : item.hazardType === activeFilter));
+                            return filtered.length === 0 
+                                ? <div className="text-center font-bold text-textGrey py-10">No alerts found for this category.</div>
+                                : filtered.map((item, index) => {
                                 const key = (item as any).id || `${item.lat}-${item.lng}-${index}`;
                                 return (
                                     <div key={key} ref={(el) => { if (el) alertRefs.current.set(key, el); }}>
@@ -82,8 +85,8 @@ export default function AlertHeader() {
                                         }} />
                                     </div>
                                 );
-                            })
-                        )}
+                            });
+                        })()}
                     </div>
                 ) 
 
