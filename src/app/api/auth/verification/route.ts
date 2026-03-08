@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect,  useState } from "react";
+import { requestUserLocation } from "@/app/api/permission/route";
 
 // --- Login Status Listener ---
 // Once the user is redirected back from the magic link, this component will detect the token in the URL, store it and sync the user info to our database.
@@ -48,11 +49,14 @@ export default function AuthListener() {
           // 6. Clean up the URL by removing the token from the hash and show a success message.
           window.history.replaceState(null, "", window.location.pathname);
           alert("Login successful!");
+
+          // 7. Request location permission after successful login.
+          requestUserLocation();
         }
       }
     };
 
-    // 7. Run the sync function when the component mounts to check for the token in the URL.
+    // 8. Run the sync function when the component mounts to check for the token in the URL.
     syncUser(); 
   }, []);
 
