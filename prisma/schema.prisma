@@ -21,8 +21,8 @@ model User {
   alerts      Alert[]            @relation("UserAlerts")
   reports     IncidentReport[]
   rescueCard      RescueCard?
-  plans       EmergencyPlan[]
   completions LessonCompletion[]
+  emergencyPlans EmergencyPlan[]
 }
 
 // Pillar 1: Crisis Action (Reports & Rescue)
@@ -83,8 +83,9 @@ model EmergencyPlan {
   id          String   @id @default(uuid())
   userId      String
   user        User     @relation(fields: [userId], references: [id])
+  title       String
   hazardType  String
-  planDetails Json     // Stores the AI-generated checklists
+  checklist   Json     // Stores the AI-generated checklists
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
