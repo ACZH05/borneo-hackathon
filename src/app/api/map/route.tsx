@@ -3,8 +3,8 @@
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 
 export default function MapDisplay({ latitude, longitude }: { latitude: number | string, longitude: number | string }) {
-  const latNum = 0.5025;
-  const lngNum = 117.1539;
+  const latNum = typeof latitude === "number" ? latitude : parseFloat(latitude);
+  const lngNum = typeof longitude === "number" ? longitude : parseFloat(longitude);
 
   const isLocationValid: boolean = 
     String(latitude).trim() !== "" && 

@@ -4,7 +4,7 @@ import { filterOptions } from "@/app/page-alerts/components/Alert-Filter";
 import { AlertItemInfo } from "@/app/page-alerts/components/Alert-Item-Info";
 import MapDisplay from "@/app/api/map/route";
 
-export default function AlertItem(item: AlertItemInfo) {
+export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => void }) {
     // --- Color Scheme Based on Priority ---
     let cardColor: string;
     let textColor: string;
@@ -32,14 +32,19 @@ export default function AlertItem(item: AlertItemInfo) {
     return (
         <div className={`flex flex-wrap items-stretch justify-center gap-6 rounded-lg border-l-10 ${cardColor} p-6 shadow`}>
             {/* --- Left Map --- */}
-            <div className="flex items-center justify-center relative rounded-lg bg-foreground/10 h-55 w-80">
+            <div
+                onClick={() => item.onMapClick?.()}
+                className="flex items-center justify-center relative rounded-lg bg-foreground/10 h-55 w-80 cursor-pointer"
+            >
                 {/* Expand Icon */}
-                <div className="flex items-center justify-center absolute top-2 right-2 bg-black/50 rounded-md p-0.5">
+                <div className="flex items-center justify-center absolute top-2 right-2 bg-black/50 rounded-md p-0.5 z-10">
                     <span className="material-symbols-outlined text-surface" style={{ fontSize: 14 }}>zoom_out_map</span>
                 </div>
                 
                 {/* Map Content */}
-                <MapDisplay latitude={item.lat} longitude={item.lng} />
+                <div className="pointer-events-none w-full h-full">
+                    <MapDisplay latitude={item.lat} longitude={item.lng} />
+                </div>
             </div>
 
             {/* --- Right Alert Info --- */}
@@ -59,7 +64,7 @@ export default function AlertItem(item: AlertItemInfo) {
 
                     <div className="flex items-center gap-2">
                         {/* --- Category (Icon) --- */}
-                        <span className="material-symbols-outlined" style={{ color: category?.color }}>{category?.icon}</span>
+                        <span className="material-symbols-outlined" style={{ color: category?.color }}>{category?.icon ?? "warning"}</span>
                         
                         {/* --- Topic --- */}
                         <span className="text-2xl font-semibold text-textBlack">{item.title}</span>
@@ -75,9 +80,15 @@ export default function AlertItem(item: AlertItemInfo) {
                     <hr className="border-textGrey/10"/>
 
                     {/* --- Location --- */}
-                    <div className="flex items-center gap-2 mt-2">
-                        <span className="material-symbols-outlined text-primary" style={{ fontSize: 20 }}>place</span>
-                        <span className="text-xs text-textGrey/80">{item.regionCode}</span>
+                    <div className="flex items-center gap-6 mt-2">
+                        <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-primary" style={{ fontSize: 20 }}>place</span>
+                            <span className="text-xs text-textGrey/80">{item.regionCode}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-primary" style={{ fontSize: 20 }}>gps_fixed</span>
+                            <span className="text-xs text-textGrey/80">{item.lat}, {item.lng}</span>
+                        </div>
                     </div>
                 </div>
             </div>
