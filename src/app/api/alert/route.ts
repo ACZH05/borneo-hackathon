@@ -10,7 +10,7 @@ const prisma = new PrismaClient({ adapter });
 // --- POST: Admin creates a new broadcast alert ---
 export async function POST(request: Request) {
   try {
-    const { userId, regionCode, hazardType, severity, title, body } = await request.json();
+    const { userId, regionCode, hazardType, severity, title, body, lat, lng } = await request.json();
 
     // Verify the user is an admin
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
         severity,   // "priority", "warning", or "monitor"
         title,
         body,
+        lat,
+        lng,
         notes: "Generated via Aegis System"
       }
     });
@@ -64,7 +66,9 @@ export async function GET() {
         description: alert.body,
         date: dateStr,
         time: timeStr,
-        location: alert.regionCode
+        location: alert.regionCode,
+        lat: alert.lat,
+        lng: alert.lng
       };
     });
 
