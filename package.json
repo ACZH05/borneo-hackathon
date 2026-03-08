@@ -6,16 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prisma": "node --experimental-require-module ./node_modules/prisma/build/index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@google/generative-ai": "^0.24.1",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
+    "dotenv": "^17.3.1",
     "next": "16.1.6",
     "pg": "^8.20.0",
     "qrcode": "^1.5.4",
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.18.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
