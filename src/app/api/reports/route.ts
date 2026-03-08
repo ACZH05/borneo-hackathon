@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       console.error("Gemini Triage failed, but saving report anyway:", aiError);
     }
 
-    // 4. Default User Setup (attention need to modify)
+    // 4. Default User Setup 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     
     if (!user) {
