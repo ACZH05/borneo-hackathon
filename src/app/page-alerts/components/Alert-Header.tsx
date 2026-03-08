@@ -28,7 +28,7 @@ export default function AlertHeader() {
             } catch (error) {
                 console.error("Failed to fetch alerts:", error);
             } finally {
-                setIsLoading(false); // Turn off loading spinner
+                setIsLoading(false); // Turn off loading spinner.
             }
         };
 
@@ -70,7 +70,7 @@ export default function AlertHeader() {
                         ) : alerts.length === 0 ? (
                             <div className="text-center font-bold text-textGrey py-10">No active alerts at this time.</div>
                         ) : (
-                            alerts.filter((item) => activeFilter === "all" || item.category === activeFilter).map((item, index) => (
+                            alerts.filter((item) => activeFilter === "all" || item.hazardType === activeFilter).map((item, index) => (
                                 // Added fallback to index for the key just in case ID is missing
                                 <AlertItem key={(item as any).id || index} {...item} />
                             ))

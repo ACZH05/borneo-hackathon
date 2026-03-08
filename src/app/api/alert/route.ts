@@ -60,13 +60,13 @@ export async function GET() {
 
       return {
         id: alert.id,
-        priority: alert.severity, 
-        category: alert.hazardType, 
-        topic: alert.title,
-        description: alert.body,
+        severity: alert.severity, 
+        hazardType: alert.hazardType, 
+        title: alert.title,
+        body: alert.body,
         date: dateStr,
         time: timeStr,
-        location: alert.regionCode,
+        regionCode: alert.regionCode,
         lat: alert.lat,
         lng: alert.lng
       };
