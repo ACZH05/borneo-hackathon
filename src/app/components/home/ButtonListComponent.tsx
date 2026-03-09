@@ -15,15 +15,50 @@ import {
   RadioGroup,
   TextField,
 } from "@mui/material";
+import { supabase } from "../../../../lib/supabase";
 
 export default function ButtonListComponent() {
   const [isOpen, setIsOpen] = useState(false);
   const [hazard, setHazard] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState({ lat: 0, lng: 0 });
 
-  const handleSubmit = () => {
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      },
+    );
+  };
+
+  const handleSubmit = async () => {
     console.log(hazard);
     console.log(description);
+    const token = localStorage.getItem("supabase.auth.token");
+    const { data } = await supabase.auth.getUser(token!);
+    const userId = data.user?.id;
+
+    getLocation();
+
+    const response = await fetch("/api/reports", {
+      method: "POST",
+      body: JSON.stringify({
+        userId,
+        lat: location.lat,
+        lng: location.lng,
+        hazardType: hazard,
+        description,
+      }),
+    });
+
+    const { message } = await response.json();
+    console.log(message);
   };
 
   const hazards = [
