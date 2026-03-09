@@ -1,8 +1,12 @@
 /* --- Enable Tailwind CSS --- */
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* --- Reset Default Margins --- */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -12,25 +16,25 @@ html, body {
 /* --- Global Theme Variables --- */
 @theme {
   --font-sans: "Manrope", sans-serif;
-  
-  --color-primary: #2D6A4F;   /* Dark Green */
-  --color-secondary: #95D5B2; /* Light Green (Prefer set it to 20% opacity.) (Icon Background) */
-  --color-accent: #2D5A27;    /* Darker Green for Accent Elements (Prefer set it to 20% opacity.) (Buttons / Links) */
 
-  --color-textBlack: #1B1B1B; /* Black Text (Topic / Title) */
-  --color-textGrey: #4B5563;  /* Grey Text (Body Text / Description) */
+  --color-primary: #2d6a4f; /* Dark Green */
+  --color-secondary: #95d5b2; /* Light Green (Prefer set it to 20% opacity.) (Icon Background) */
+  --color-accent: #2d5a27; /* Darker Green for Accent Elements (Prefer set it to 20% opacity.) (Buttons / Links) */
 
-  --color-priority: #DC2626;  /* Red for Priority Indicator */
-  --color-warning: #F97316;   /* Orange for Warning Indicator */
-  --color-monitor: #3B82F6;   /* Blue for Monitor Indicator */
+  --color-textBlack: #1b1b1b; /* Black Text (Topic / Title) */
+  --color-textGrey: #4b5563; /* Grey Text (Body Text / Description) */
 
-  --color-background: #F8F9FA; /* Light Gray Background */
-  --color-foreground: #6B7280; /* Slightly Darker Gray for Foreground Elements (Navigation Bar / Input Field) */
-  --color-surface: #FFFFFF;    /* White Surface */
+  --color-priority: #dc2626; /* Red for Priority Indicator */
+  --color-warning: #f97316; /* Orange for Warning Indicator */
+  --color-monitor: #3b82f6; /* Blue for Monitor Indicator */
+
+  --color-background: #f8f9fa; /* Light Gray Background */
+  --color-foreground: #6b7280; /* Slightly Darker Gray for Foreground Elements (Navigation Bar / Input Field) */
+  --color-surface: #ffffff; /* White Surface */
 }
 
 body {
-  font-family: var(--font-sans);             /* Default Font (Manrope) */
+  font-family: var(--font-sans); /* Default Font (Manrope) */
   background-color: var(--color-background); /* Light Gray Background */
-  color: var(--color-textBlack);             /* Default Text Color (Black) */
+  color: var(--color-textBlack); /* Default Text Color (Black) */
 }
