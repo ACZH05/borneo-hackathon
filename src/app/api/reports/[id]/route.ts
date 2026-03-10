@@ -54,3 +54,33 @@ export async function PATCH(
     );
   }
 }
+
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const resolvedParams = await params;
+    const userId = resolvedParams.id;
+
+    if (!userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    // Fetch ONLY the reports belonging to this user
+    const reports = await prisma.incidentReport.findMany({
+      where: { userId: userId }, 
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { name: true, regionCode: true } }
+      }
+    });
+
+    return NextResponse.json({ success: true, reports }, { status: 200 });
+
+  } catch (error) {
+    console.error('Error fetching user reports:', error);
+    return NextResponse.json({ error: 'Failed to fetch user reports' }, { status: 500 });
+  }
+}

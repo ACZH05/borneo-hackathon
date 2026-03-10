@@ -116,15 +116,7 @@ export async function POST(request: Request) {
 // Keep the GET route exactly the same!
 export async function GET(request: Request) {
   try {
-    // 1. Check if the frontend passed a userId in the URL!
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    // 2. If we have a userId, only fetch THEIR reports. Otherwise, fetch ALL.
-    const whereClause = userId ? { userId: userId } : {};
-
     const reports = await prisma.incidentReport.findMany({
-      where: whereClause, // <-- The magic filter
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { name: true, regionCode: true } }
