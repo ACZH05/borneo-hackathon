@@ -3,7 +3,8 @@ export const filterOptions: { label: string; icon: string; color: string; value:
     { label: "All Threats", icon: "category", color: "#95D5B2", value: "all" },
     { label: "Flood", icon: "water_drop", color: "#3B82F6", value: "flood" },
     { label: "Landslide", icon: "landslide", color: "#D97706", value: "landslide" },
-    { label: "Tidal Surge", icon: "tsunami", color: "#22D3EE", value: "tidal" },
+    { label: "Tidal", icon: "tsunami", color: "#22D3EE", value: "tidal" },
+    { label: "Other", icon: "warning", color: "#EF4444", value: "other" },
 ];
 
 interface AlertFilterProps {

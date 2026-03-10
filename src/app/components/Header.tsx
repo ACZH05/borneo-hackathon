@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation"; 
 import { JSX, useState } from "react";
-import { AuthStatus, Login, Logout } from "@/app/api/auth/verification/route";
+import { AuthStatus, Logout } from "@/app/api/auth/verification/route";
 import AuthWindow from "@/app/components/Auth-Window";
 
 // --- Navigation Link List ---
