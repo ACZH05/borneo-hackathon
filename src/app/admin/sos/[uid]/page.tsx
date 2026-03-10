@@ -4,7 +4,14 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import TipsAndUpdatesOutlinedIcon from "@mui/icons-material/TipsAndUpdatesOutlined";
 import RescueCard from "./components/RescueCard";
 
-function Page() {
+async function Page({ params }: { params: Promise<{ uid: string }> }) {
+  const { uid } = await params;
+  console.log(uid);
+  // const response = await fetch(`${process.env.URL}/api/reports/${uid}`, {
+  //   method: "GET",
+  // });
+  // const data = await response.json();
+  // console.log(data);
   return (
     <div className="flex flex-col gap-6 h-10/12 p-6">
       <div className="h-full grid grid-cols-2 grid-rows-2 gap-6">

@@ -19,7 +19,6 @@ export default async function SOSLayout({
 
   const data = await response.json();
   const reports = data?.reports;
-  console.log("reports: ", reports);
 
   return (
     <div className="grid grid-cols-[1fr_2fr] h-auto overflow-hidden">
