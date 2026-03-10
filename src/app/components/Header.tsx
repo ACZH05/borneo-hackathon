@@ -22,7 +22,7 @@ export default function Header() {
   const { isLoggedIn, isLoading } = AuthStatus(); // Store the login state of the user.
 
   return (
-    <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm min-w-screen px-8 py-4">
+    <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm w-full px-8 py-4">
       {/* --- Left Side --- */}
       <div className="flex items-center justify-center gap-3">
         {/* --- Drawer for Mobile --- */} {/* Show only on mobile. */}
