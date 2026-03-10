@@ -116,7 +116,7 @@ export function Login() {
           email,
           options: {
             shouldCreateUser: true,
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}`,
           }
         })
       });
