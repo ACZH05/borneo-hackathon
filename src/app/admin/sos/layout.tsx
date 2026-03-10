@@ -2,6 +2,19 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import FilterChips from "./components/FilterChips";
 import RequestTab from "./components/RequestTab";
 
+type Report = {
+  id: string;
+  userId: string;
+  lat: number;
+  lng: number;
+  address: string;
+  hazardType: string;
+  description: string;
+  status: string;
+  aiTriage: any;
+  createdAt: string | Date;
+};
+
 export default async function SOSLayout({
   children,
 }: {
@@ -18,7 +31,7 @@ export default async function SOSLayout({
   });
 
   const data = await response.json();
-  const reports = data?.reports;
+  const reports: Report[] = data?.reports;
 
   return (
     <div className="grid grid-cols-[1fr_2fr] h-auto overflow-hidden">
