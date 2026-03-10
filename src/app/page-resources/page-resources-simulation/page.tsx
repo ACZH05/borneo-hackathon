@@ -11,7 +11,7 @@ export default function ResourcesSimulationPage() {
 
   if (!isSimulating) {
     return (
-      <div>
+      <div className="flex flex-col h-full w-full p-10">
         <SimulationHeader />
         <SimulationOption setIsSimulating={setIsSimulating} setSelectedHazard={setSelectedHazard} />
       </div>
@@ -19,7 +19,7 @@ export default function ResourcesSimulationPage() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col h-full w-full p-10">
       <SimulationQuestion hazardType={selectedHazard} setIsSimulating={setIsSimulating} />
     </div>
   );

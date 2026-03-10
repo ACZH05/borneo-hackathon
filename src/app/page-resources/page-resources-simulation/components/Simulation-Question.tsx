@@ -83,7 +83,7 @@ export default function SimulationQuestion({ hazardType, setIsSimulating }: Simu
     {/* --- Loading State --- */}
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 min-h-[70vh]">
+            <div className="flex flex-col items-center justify-center p-20 gap-4 h-full">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
                 <p className="text-gray-600 font-semibold">Generating Simulation Scenario...</p>
             </div>
@@ -93,7 +93,7 @@ export default function SimulationQuestion({ hazardType, setIsSimulating }: Simu
     {/* --- Error State --- */}
     if (error || !quiz) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 min-h-[70vh]">
+            <div className="flex flex-col items-center justify-center p-20 gap-4 h-full">
                 <span className="material-symbols-outlined text-red-500" style={{ fontSize: 64 }}>error</span>
                 <p className="text-red-600 font-semibold">{error}</p>
                 <button 
@@ -109,7 +109,7 @@ export default function SimulationQuestion({ hazardType, setIsSimulating }: Simu
     const isCorrect = selectedOption === quiz.correctOptionIndex;
 
     return (
-        <div className="p-10 max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Emergency Simulation</h1>

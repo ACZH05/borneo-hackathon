@@ -1,6 +1,6 @@
 export default function SimulationHeader() {
     return (
-        <div className="flex flex-col items-center justify-center gap-10 p-10">
+        <div className="flex flex-col items-center justify-center gap-10">
             {/* --- Title --- */}
             <h1 className="text-6xl font-bold">
                 <span>AI Survival </span>
