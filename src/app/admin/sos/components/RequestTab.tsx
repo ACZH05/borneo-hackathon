@@ -1,15 +1,26 @@
+import Link from "next/link";
 import React from "react";
 
-function RequestTab() {
+interface detailsProps {
+  uid: string;
+  severity: string;
+  hazardType: string;
+  location: string;
+}
+
+function RequestTab({ uid, severity, hazardType, location }: detailsProps) {
   return (
-    <div className="flex flex-col gap-1 p-4 border-t-2 border-b-2 border-textGrey/10 cursor-pointer hover:bg-primary/5 hover:border-hidden">
+    <Link
+      href={`/admin/sos/${uid}`}
+      className="flex flex-col gap-1 p-4 cursor-pointer hover:bg-primary/5"
+    >
       <div className="flex justify-between text-xs">
-        <span className="text-priority font-black">CRITICAL URGENCY</span>
+        <span className="text-priority font-black">{severity}</span>
         <span className="">2m ago</span>
       </div>
-      <div className="text-base font-black">Flood</div>
-      <div className="text-xs">Location: xxx</div>
-    </div>
+      <div className="text-base font-black">{hazardType}</div>
+      <div className="text-xs">{location}</div>
+    </Link>
   );
 }
 
