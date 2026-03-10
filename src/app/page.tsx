@@ -7,8 +7,11 @@ import LatestAlert from "./components/home/LatestAlert";
 import { supabase } from "../../lib/supabase";
 
 type RescueCardData = {
+  bloodType?: string;
+  medicalConditions?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  qrCodeData?: string;
 };
 
 export default function HomePage() {
@@ -93,8 +96,11 @@ export default function HomePage() {
 
         <EmergencyDetailsComponent
           name={name}
+          bloodType={rescueCard?.bloodType ?? ""}
+          medicalConditions={rescueCard?.medicalConditions ?? ""}
           emergencyContactName={rescueCard?.emergencyContactName ?? ""}
           emergencyContactPhone={rescueCard?.emergencyContactPhone ?? ""}
+          qrCodeData={rescueCard?.qrCodeData ?? ""}
         />
       </div>
       <div className="col-span-2 row-span-2 col-start-3 bg-blue-50">2</div>
