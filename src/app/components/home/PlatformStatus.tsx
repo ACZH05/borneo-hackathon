@@ -24,7 +24,7 @@ export default function PlatformStatus() {
             
             <div className="flex items-between justify-between gap-2">
                 <span className="text-xs text-[#DCFCE7] font-extralight">Last Update</span>
-                <span className="text-xs text-[#DCFCE7] font-extralight">{stats.lastUpdate}</span>
+                <span className="text-right text-xs text-[#DCFCE7] font-extralight wrap-break-word">{stats.lastUpdate}</span>
             </div>
         </div>
     );

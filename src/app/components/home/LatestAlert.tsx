@@ -95,10 +95,10 @@ export default function LatestAlert() {
         return (
           <div
             onClick={() => openAlert(featured)}
-            className={`flex cursor-pointer p-8 gap-8 bg-white border-l-10 ${borderColor[featured.severity] ?? "border-gray-300"} rounded-2xl shadow`}
+            className={`flex flex-wrap cursor-pointer p-6 gap-8 bg-white border-l-10 ${borderColor[featured.severity] ?? "border-gray-300"} rounded-2xl shadow`}
           >
             {/* --- Map Display --- */}
-            <div className="flex items-center justify-center w-full bg-primary/10">
+            <div className="flex items-center justify-center w-full min-h-42 bg-primary/10">
               <MapDisplay latitude={featured.lat} longitude={featured.lng} />
             </div>
             <div className="flex flex-col gap-4 w-full">
@@ -142,7 +142,7 @@ export default function LatestAlert() {
         return (
           <div
             onClick={() => openAlert(second)}
-            className={`flex cursor-pointer flex-col gap-5 border-l-10 ${borderColor[second.severity] ?? "border-gray-300"} bg-white rounded-2xl p-8 shadow`}
+            className={`flex cursor-pointer flex-col gap-5 border-l-10 ${borderColor[second.severity] ?? "border-gray-300"} bg-white rounded-2xl p-6 shadow`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center justify-center gap-2">
@@ -159,11 +159,6 @@ export default function LatestAlert() {
               <div className={`${badgeColor[second.severity] ?? "bg-gray-300/10 text-gray-300"} text-xs font-bold px-2 py-1 rounded-md uppercase`}>
                 {second.severity}
               </div>
-            </div>
-
-            {/* --- Date & Location --- */}
-            <div className="flex flex-col gap-1 w-full">
-              <span className="text-textGrey text-justify whitespace-pre-line">{formatAlertBody(second.body)}</span>
             </div>
           </div>
         );

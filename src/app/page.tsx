@@ -92,9 +92,9 @@ export default function HomePage() {
   }, [email, userId]);
 
   return (
-    <div className="grid grid-cols-4 gap-x-4 gap-y-8 p-8">
-      <div className="flex flex-col gap-8 col-span-2">
-        <div className="text-6xl font-bold">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-8 p-4 sm:p-6 lg:grid-cols-4 lg:p-8">
+      <div className="col-span-1 flex min-w-0 flex-col gap-8 lg:col-span-2">
+        <div className="wrap-break-word text-4xl font-bold sm:text-5xl lg:text-6xl">
           Together for a <br />
           <span>Resilient Borneo</span>
         </div>
@@ -117,17 +117,17 @@ export default function HomePage() {
         />
       </div>
 
-      <div className="col-span-2 bg-blue-50">
+      <div className="col-span-1 min-h-80 bg-blue-50 lg:col-span-2">
         <div className="flex items-center justify-center h-full w-full">
           <MapDisplay latitude={userLocation?.lat ?? null} longitude={userLocation?.lng ?? null} />
         </div>
       </div>
 
-      <div className="col-span-3">
+      <div className="col-span-1 min-w-0 lg:col-span-3">
         <LatestAlert />
       </div>
 
-      <div className="col-span-1 flex flex-col gap-4">
+      <div className="col-span-1 min-w-0 flex flex-col gap-4 lg:col-span-1">
         <PlatformStatus />
         <TrustedContacts />
       </div>
