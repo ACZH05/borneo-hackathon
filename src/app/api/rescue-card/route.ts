@@ -39,9 +39,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { 
-      email, bloodType, allergies, medicalConditions, 
-      emergencyContactName, emergencyContactPhone, homeLat, homeLng
+    const {
+      email,
+      bloodType,
+      allergies,
+      medicalConditions,
+      emergencyContactName,
+      emergencyContactPhone,
+      homeLat,
+      homeLng,
+      homeAddress
     } = body;
 
     if (!email) {
@@ -54,12 +61,15 @@ export async function POST(request: Request) {
     }
 
     // --- 1. GOOGLE MAPS REVERSE GEOCODING ---
-    let formattedAddress = "Address not found";
+    let formattedAddress = homeAddress?.trim() || "Address not found";
+
     if (homeLat && homeLng && process.env.GOOGLE_MAPS_API_KEY) {
       try {
-        const geoRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${homeLat},${homeLng}&key=${process.env.GOOGLE_MAPS_API_KEY}`);
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${homeLat},${homeLng}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+        );
         const geoData = await geoRes.json();
-        
+
         if (geoData.status === "OK" && geoData.results.length > 0) {
           formattedAddress = geoData.results[0].formatted_address;
         }

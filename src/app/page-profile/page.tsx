@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase"; 
+import MapPicker from "./components/MapPicker";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface RescueCard {
@@ -155,99 +156,263 @@ function EditDrawer({ user, onClose, onSave }: { user: UserProfile; onClose: () 
 }
 
 // ─── Edit Medical Rescue Card Drawer ───────────────────────────────────────────
-function EditRescueCardDrawer({ card, onClose, onSave }: { card?: RescueCard; onClose: () => void; onSave: (data: any) => Promise<void>; }) {
+function EditRescueCardDrawer({
+  card,
+  onClose,
+  onSave,
+}: {
+  card?: RescueCard;
+  onClose: () => void;
+  onSave: (data: any) => Promise<void>;
+}) {
   const [formData, setFormData] = useState({
     bloodType: card?.bloodType || "",
     allergies: card?.allergies || "",
     medicalConditions: card?.medicalConditions || "",
     emergencyContactName: card?.emergencyContactName || "",
     emergencyContactPhone: card?.emergencyContactPhone || "",
-    homeLat: card?.homeLat || "",
-    homeLng: card?.homeLng || ""
+    homeAddress: card?.homeAddress || "",
+    homeLat: card?.homeLat ?? null,
+    homeLng: card?.homeLng ?? null,
   });
+
   const [saving, setSaving] = useState(false);
+  const [searchingAddress, setSearchingAddress] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSearchAddress = async () => {
+    if (!formData.homeAddress.trim()) {
+      setError("Please enter an address first.");
+      return;
+    }
+
+    setSearchingAddress(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/geocode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: formData.homeAddress,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to find address.");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        homeAddress: data.formattedAddress,
+        homeLat: data.lat,
+        homeLng: data.lng,
+      }));
+    } catch (err: any) {
+      setError(err.message || "Failed to search address.");
+    } finally {
+      setSearchingAddress(false);
+    }
+  };
+
+  const handleMapPick = async ({ lat, lng }: { lat: number; lng: number }) => {
+    try {
+      const res = await fetch("/api/reverse-geocode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ lat, lng }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to resolve address.");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        homeLat: lat,
+        homeLng: lng,
+        homeAddress: data.formattedAddress,
+      }));
+    } catch (err: any) {
+      setFormData((prev) => ({
+        ...prev,
+        homeLat: lat,
+        homeLng: lng,
+      }));
+      setError(err.message || "Failed to update address from map.");
+    }
   };
 
   const submit = async () => {
-    setSaving(true); setError("");
+    setSaving(true);
+    setError("");
+
     try {
-      // Parse floats for coordinates
-      const payload = {
-        ...formData,
-        homeLat: formData.homeLat ? parseFloat(formData.homeLat.toString()) : null,
-        homeLng: formData.homeLng ? parseFloat(formData.homeLng.toString()) : null,
-      };
-      await onSave(payload);
-    } catch { setError("Failed to save Rescue Card."); } 
-    finally { setSaving(false); }
+      await onSave(formData);
+    } catch {
+      setError("Failed to save Rescue Card.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm transition-all overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="w-full sm:max-w-xl bg-surface border border-foreground/10 sm:rounded-2xl rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 my-8">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm transition-all overflow-y-auto"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="w-full sm:max-w-xl bg-surface border border-foreground/10 sm:rounded-2xl rounded-t-3xl shadow-2xl my-8">
         <div className="flex items-center justify-between px-8 py-6 border-b border-foreground/10 bg-foreground/2">
           <div>
-            <h2 className="text-foreground font-extrabold text-xl tracking-tight">Medical Rescue Card</h2>
-            <p className="text-textGrey text-sm mt-1">Update your emergency medical info</p>
+            <h2 className="text-foreground font-extrabold text-xl tracking-tight">
+              Medical Rescue Card
+            </h2>
+            <p className="text-textGrey text-sm mt-1">
+              Update your emergency medical info
+            </p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-foreground/10 text-textGrey transition-colors">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            ✕
           </button>
         </div>
-        
-        <div className="px-8 py-6 space-y-5 max-h-[60vh] overflow-y-auto">
-          {/* Blood Type & Allergies */}
+
+        <div className="px-8 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Blood Type</label>
-              <select name="bloodType" value={formData.bloodType} onChange={handleChange} className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none">
-                <option value="" disabled>Select</option>
-                {BLOOD_TYPES.map(bt => <option key={bt} value={bt}>{bt}</option>)}
+              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">
+                Blood Type
+              </label>
+              <select
+                name="bloodType"
+                value={formData.bloodType}
+                onChange={handleChange}
+                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
+              >
+                <option value="">Select</option>
+                {BLOOD_TYPES.map((bt) => (
+                  <option key={bt} value={bt}>
+                    {bt}
+                  </option>
+                ))}
               </select>
             </div>
+
             <div className="space-y-2">
-              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Allergies</label>
-              <input name="allergies" value={formData.allergies} onChange={handleChange} placeholder="e.g. Peanuts, Penicillin" className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none" />
+              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">
+                Allergies
+              </label>
+              <input
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleChange}
+                placeholder="e.g. Peanuts, Penicillin"
+                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
+              />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Medical Conditions</label>
-            <input name="medicalConditions" value={formData.medicalConditions} onChange={handleChange} placeholder="e.g. Asthma, Diabetes" className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none" />
+            <label className="text-xs text-textGrey font-bold uppercase tracking-widest">
+              Medical Conditions
+            </label>
+            <input
+              name="medicalConditions"
+              value={formData.medicalConditions}
+              onChange={handleChange}
+              placeholder="e.g. Asthma, Diabetes"
+              className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Emergency Contact</label>
-              <input name="emergencyContactName" value={formData.emergencyContactName} onChange={handleChange} placeholder="Name" className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Contact Phone</label>
-              <input name="emergencyContactPhone" value={formData.emergencyContactPhone} onChange={handleChange} placeholder="+60..." className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none" />
-            </div>
+            <input
+              name="emergencyContactName"
+              value={formData.emergencyContactName}
+              onChange={handleChange}
+              placeholder="Emergency contact name"
+              className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
+            />
+            <input
+              name="emergencyContactPhone"
+              value={formData.emergencyContactPhone}
+              onChange={handleChange}
+              placeholder="+60..."
+              className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Home Latitude</label>
-              <input type="number" step="any" name="homeLat" value={formData.homeLat} onChange={handleChange} placeholder="e.g. 3.1390" className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none" />
+          <div className="space-y-3">
+            <label className="text-xs text-textGrey font-bold uppercase tracking-widest">
+              Home Address
+            </label>
+
+            <div className="flex gap-3">
+              <input
+                name="homeAddress"
+                value={formData.homeAddress}
+                onChange={handleChange}
+                placeholder="Enter your address"
+                className="flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleSearchAddress}
+                disabled={searchingAddress}
+                className="px-4 py-3 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-50"
+              >
+                {searchingAddress ? "Searching..." : "Find"}
+              </button>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs text-textGrey font-bold uppercase tracking-widest">Home Longitude</label>
-              <input type="number" step="any" name="homeLng" value={formData.homeLng} onChange={handleChange} placeholder="e.g. 101.6869" className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-foreground text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none" />
-            </div>
+
+            <MapPicker
+              lat={formData.homeLat}
+              lng={formData.homeLng}
+              onPick={handleMapPick}
+            />
+
+            <p className="text-xs text-textGrey">
+              Search your address, then click the map to fine-tune the exact location.
+            </p>
+
+            {formData.homeLat !== null && formData.homeLng !== null && (
+              <div className="text-xs text-textGrey bg-foreground/5 rounded-xl px-4 py-3">
+                Selected coordinates: {formData.homeLat}, {formData.homeLng}
+              </div>
+            )}
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
 
         <div className="px-8 pb-8 pt-4 border-t border-foreground/10 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3.5 rounded-xl border border-foreground/10 text-textGrey hover:bg-foreground/5 transition-all text-sm font-bold">Cancel</button>
-          <button onClick={submit} disabled={saving} className="flex-1 py-3.5 rounded-xl bg-red-600 text-white font-bold text-sm hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3.5 rounded-xl border border-foreground/10 text-textGrey"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            className="flex-1 py-3.5 rounded-xl bg-red-600 text-white font-bold text-sm disabled:opacity-50"
+          >
             {saving ? "Saving..." : "Save Rescue Card"}
           </button>
         </div>

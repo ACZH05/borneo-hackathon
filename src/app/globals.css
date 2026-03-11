@@ -1,7 +1,5 @@
 /* --- Enable Tailwind CSS --- */
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 /* --- Reset Default Margins --- */
