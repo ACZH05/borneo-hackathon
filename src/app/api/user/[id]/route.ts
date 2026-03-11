@@ -2,16 +2,18 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg'; 
 
+// 🚨 KILLS NEXT.JS SERVER CACHING FOREVER FOR THIS ROUTE
+export const dynamic = 'force-dynamic'; 
+
 // 1. Initialize Database Adapter
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!, 
 });
-const prisma = new PrismaClient({ adapter });  //alternative option is lib/prisma.ts then configure and import at every file(just for note)
-
+const prisma = new PrismaClient({ adapter });  
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> } // Awaiting params for Next.js 15+ 
+  { params }: { params: Promise<{ id: string }> } 
 ) {
   try {
     const resolvedParams = await params;
@@ -24,12 +26,9 @@ export async function GET(
     // Fetch the user from your database
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true, //read only !! not edit allow
-        role: true,
-        regionCode: true, // Pulls exactly what the frontend needs!
+      // 🚨 CHANGED FROM 'select' TO 'include' TO GUARANTEE THE RESCUE CARD LOADS
+      include: {
+        rescueCard: true, 
       }
     });
 
@@ -65,16 +64,11 @@ export async function PATCH(
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        // The ... syntax ensures we only update fields that the frontend actually sent!
         ...(name && { name }),
         ...(regionCode && { regionCode }),
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        regionCode: true, 
+      include: {
+        rescueCard: true, // Keep the rescue card attached when returning updated user
       }
     });
 
