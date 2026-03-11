@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { formatAlertBody } from "@/app/api/alert/util/formatAlertBody";
 import { filterOptions } from "@/app/page-alerts/components/Alert-Filter";
-import { AlertItemInfo } from "@/app/page-alerts/components/Alert-Item-Info";
+import { AlertItemInfo } from "@/app/api/alert/util/types";
 import MapDisplay from "@/app/api/map/route";
 
 export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => void }) {
+    const [isMapClickable, setIsMapClickable] = useState(false);
+
     // --- Color Scheme Based on Priority ---
     let cardColor: string;
     let textColor: string;
@@ -33,8 +37,9 @@ export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => voi
         <div className={`flex flex-wrap items-stretch justify-center gap-6 rounded-lg border-l-10 ${cardColor} p-6 shadow`}>
             {/* --- Left Map --- */}
             <div
-                onClick={() => item.onMapClick?.()}
-                className="flex items-center justify-center relative rounded-lg bg-foreground/10 h-55 w-80 cursor-pointer"
+                onClick={isMapClickable ? () => item.onMapClick?.() : undefined}
+                className={`flex items-center justify-center relative rounded-lg bg-foreground/10 h-55 w-80 ${isMapClickable ? "cursor-pointer" : "cursor-not-allowed opacity-70"}`}
+                aria-disabled={!isMapClickable}
             >
                 {/* Expand Icon */}
                 <div className="flex items-center justify-center absolute top-2 right-2 bg-black/50 rounded-md p-0.5 z-10">
@@ -42,8 +47,8 @@ export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => voi
                 </div>
                 
                 {/* Map Content */}
-                <div className="pointer-events-none w-full h-full">
-                    <MapDisplay latitude={item.lat} longitude={item.lng} />
+                <div className="flex items-center justify-center pointer-events-none w-full h-full">
+                    <MapDisplay latitude={item.lat} longitude={item.lng} onValidityChange={setIsMapClickable} />
                 </div>
             </div>
 
@@ -71,7 +76,7 @@ export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => voi
                     </div>
 
                     {/* --- Description --- */}
-                    <p className="text-justify text-xs text-textGrey">{item.body}</p>
+                    <p className="text-justify text-xs text-textGrey whitespace-pre-line">{formatAlertBody(item.body)}</p>
                 </div>
 
                 {/* --- Right Bottom --- */}
