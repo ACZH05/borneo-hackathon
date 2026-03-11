@@ -8,11 +8,19 @@ import AuthWindow from "@/app/components/Auth-Window";
 
 // --- Navigation Link List ---
 const navLinks = [
-  { name: "Home", href: "/" },
-  { name: "Alerts", href: "/page-alerts" },
-  { name: "Resources", href: "/page-resources" },
-  { name: "Supports", href: "/page-supports" },
-  { name: "Settings", href: "/page-settings" },
+  { name: "Home", href: "/", icon: "home" },
+  { name: "Alerts", href: "/page-alerts", icon: "notifications" },
+  { 
+    name: "Resources", 
+    href: "/page-resources",
+    icon: "folder",
+    subLinks: [
+      { name: "Simulation", href: "/page-resources/page-resources-simulation" }, 
+      { name: "Checklist", href: "/page-resources/page-resources-checklist" }
+    ] 
+  },
+  { name: "Supports", href: "/page-supports", icon: "help" },
+  { name: "Settings", href: "/page-settings", icon: "settings" },
 ];
 
 export default function Header() {
@@ -43,17 +51,40 @@ export default function Header() {
       {/* --- Middle Navigation Links --- */} {/* Show only on desktop. */}
       <nav className="hidden xl:flex items-center gap-1 rounded-full bg-foreground/3 px-1 py-1 ml-auto">
         {navLinks.map((link) => (
-          <Link
-            key={link.name}
-            href={link.href}
-            className={`rounded-full px-5 py-2 no-underline text-sm font-semibold transition-all ease-in-out duration-300 ${
-              pathname === link.href
-                ? "bg-primary text-surface"             // Active Link Style: Green background with white text.
-                : "text-textGrey hover:bg-secondary/20" // Inactive Link Style: Grey text that turns light green on hover.
-            }`}
-          >
-            {link.name}
-          </Link>
+          <div key={link.name} className="relative group">
+            {/* --- Main Link --- */}
+            <Link
+              href={link.href}
+              className={`inline-block rounded-full px-5 py-2 no-underline text-sm font-semibold transition-all ease-in-out duration-300 ${
+                pathname === link.href || (link.subLinks && pathname.startsWith(link.href))
+                  ? "bg-primary text-surface" 
+                  : "text-textGrey hover:bg-secondary/20"
+              }`}
+            >
+              {link.name}
+            </Link>
+
+            {/* --- Sub Links (For Resources) --- */}
+            {link.subLinks && (
+              <div className="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                <div className="flex flex-col bg-surface shadow-lg rounded-xl overflow-hidden border border-gray-100 p-1">
+                  {link.subLinks.map((subLink) => (
+                    <Link
+                      key={subLink.name}
+                      href={subLink.href}
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                        pathname === subLink.href 
+                          ? "text-primary bg-primary/10" 
+                          : "text-textGrey hover:bg-secondary/20 hover:text-primary"
+                      }`}
+                    >
+                      {subLink.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         ))}
       </nav>
 
@@ -137,18 +168,43 @@ function Drawer() : JSX.Element {
         {/* --- Menu Links --- */}
         <nav className="flex flex-col">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className={`text-sm font-bold px-4 py-3 ${
-                pathname === link.href 
-                  ? "bg-primary text-surface" 
-                  : "text-textGrey hover:bg-secondary/20"
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
-              {link.name}
-            </Link>
+            <div key={link.name} className="flex flex-col">
+              { /* --- Main Link --- */ }
+              <Link
+                href={link.href}
+                className={`text-sm font-bold px-4 py-3 ${
+                  pathname === link.href || (link.subLinks && pathname.startsWith(link.href))
+                    ? "bg-primary text-surface" 
+                    : "text-textGrey hover:bg-secondary/20"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                <div className="flex items-center">
+                  {<span className="material-symbols-outlined mr-2" style={{ fontSize: "1.25rem" }}>{link.icon}</span>}
+                  {link.name}
+                </div>
+              </Link>
+              
+              {/* --- Sub Links (For Resources) --- */}
+              {link.subLinks && (
+                <div className="flex flex-col bg-foreground/3">
+                  {link.subLinks.map((subLink) => (
+                    <Link
+                      key={subLink.name}
+                      href={subLink.href}
+                      className={`text-sm font-semibold pl-10 pr-4 py-2 ${
+                        pathname === subLink.href 
+                          ? "text-primary" 
+                          : "text-textGrey hover:bg-secondary/20"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {"> " + subLink.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
       </aside>
