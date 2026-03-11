@@ -13,6 +13,7 @@ export default function EmergencyDetailsComponent({
   medicalConditions,
   emergencyContactName,
   emergencyContactPhone,
+  homeAddress,
   qrCodeData,
 }: {
   name: string;
@@ -20,6 +21,7 @@ export default function EmergencyDetailsComponent({
   medicalConditions: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  homeAddress: string;
   qrCodeData: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,10 +43,10 @@ export default function EmergencyDetailsComponent({
 
         <div className="flex flex-col gap-1">
           <span className="text-xs">EMERGENCY CONTACT</span>
-          <span className="font-bold">{emergencyContactName}</span>
+          <span className="font-bold">{emergencyContactName || "-"}</span>
           <div className="items-center text-xs">
             <CallIcon fontSize="small" />
-            {emergencyContactPhone}
+            {emergencyContactPhone || "-"}
           </div>
         </div>
       </div>
@@ -56,34 +58,38 @@ export default function EmergencyDetailsComponent({
         <div className="bg-white rounded-2xl">
           <div className="grid grid-cols-3 grid-rows-3 gap-4 p-4">
             <div className="flex justify-between items-center col-span-3">
-              Ahmad Yusof
+              {name || "-"}
               <div onClick={() => setIsOpen(false)} className="cursor-pointer">
                 <CloseIcon />
               </div>
             </div>
             <div className="flex flex-col text-xs gap-1 row-start-2">
               <span className="text-textGrey">BLOOD TYPE</span>
-              <span className="text-sm font-bold">{bloodType}</span>
+              <span className="text-sm font-bold">{bloodType || "-"}</span>
             </div>
             <div className="flex flex-col text-xs gap-1 row-start-2">
               <span className="text-textGrey">MEDICAL CONDITION</span>
-              <span className="text-sm font-bold">{medicalConditions}</span>
+              <span className="text-sm font-bold">{medicalConditions || "-"}</span>
             </div>
             <div className="flex flex-col text-xs gap-1">
-              <span className="text-textGrey">HOME ADRRESS</span>
-              <span className="text-sm font-bold">Villa 12, Lake View</span>
+              <span className="text-textGrey">HOME ADDRESS</span>
+              <span className="text-sm font-bold">{homeAddress || "-"}</span>
             </div>
             <div className="flex flex-col text-xs gap-1 row-start-3">
               <span className="text-textGrey">CONTACT PHONE</span>
-              <span className="text-sm font-bold">{emergencyContactPhone}</span>
+              <span className="text-sm font-bold">{emergencyContactPhone || "-"}</span>
             </div>
             <div className="flex flex-col text-xs gap-1 col-span-2 row-start-3">
               <span className="text-textGrey">EMERGENCY CONTACT</span>
-              <span className="text-sm font-bold">{emergencyContactName}</span>
+              <span className="text-sm font-bold">{emergencyContactName || "-"}</span>
             </div>
           </div>
           <div className="flex justify-center items-center p-8">
-            <Image src={qrCodeData} alt="QR" />
+            {qrCodeData ? (
+              <Image src={qrCodeData} alt="QR" width={220} height={220} />
+            ) : (
+              <span className="text-sm text-textGrey">QR code unavailable</span>
+            )}
           </div>
         </div>
       </Modal>

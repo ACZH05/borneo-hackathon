@@ -1,41 +1,40 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import AlertMode from "./Alert-Mode";
 import AlertFilter from "./Alert-Filter";
 import AlertItem from "./Alert-Item-List";
 import AlertItemMap from "./Alert-Item-Map";
-import { AlertItemInfo } from "./Alert-Item-Info"; // Import the type, not the dummy data
+import { AlertItemInfo } from "@/app/api/alert/util/types";
+import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
 
 export default function AlertHeader() {
+    const searchParams = useSearchParams();
     const [activeFilter, setActiveFilter] = useState("all"); // Active Filter State (Default to "All Threats")
     const [displayMode, setDisplayMode] = useState("list"); // "List" or "Map" Mode State (Default to "List")
     const [focusedAlert, setFocusedAlert] = useState<AlertItemInfo | null>(null); // Alert to zoom into on map.
     const alertRefs = useRef<Map<string, HTMLDivElement>>(new Map()); // Refs for scrolling to alert cards.
     
-    // --- NEW: Live Database States ---
-    const [alerts, setAlerts] = useState<AlertItemInfo[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { alerts, isLoading } = useAlertsData();
 
-    // --- NEW: Fetch from API on Load ---
     useEffect(() => {
-        const fetchAlerts = async () => {
-            try {
-                const response = await fetch('/api/alert');
-                const data = await response.json();
-                
-                if (data.success) {
-                    setAlerts(data.alerts); // Load real data into state!
-                }
-            } catch (error) {
-                console.error("Failed to fetch alerts:", error);
-            } finally {
-                setIsLoading(false); // Turn off loading spinner.
+        const alertId = searchParams.get("alert");
+        if (!alertId || isLoading || alerts.length === 0) return;
+
+        setDisplayMode("list");
+        setActiveFilter("all");
+
+        const scrollToAlert = () => {
+            const el = alertRefs.current.get(alertId);
+            if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "center" });
             }
         };
 
-        fetchAlerts();
-    }, []);
+        const timer = window.setTimeout(scrollToAlert, 100);
+        return () => window.clearTimeout(timer);
+    }, [alerts, isLoading, searchParams]);
 
     return (
         <div className="flex flex-col gap-10 p-10">
@@ -76,7 +75,7 @@ export default function AlertHeader() {
                             return filtered.length === 0 
                                 ? <div className="text-center font-bold text-textGrey py-10">No alerts found for this category.</div>
                                 : filtered.map((item, index) => {
-                                const key = (item as any).id || `${item.lat}-${item.lng}-${index}`;
+                                const key = item.id || `${item.lat}-${item.lng}-${index}`;
                                 return (
                                     <div key={key} ref={(el) => { if (el) alertRefs.current.set(key, el); }}>
                                         <AlertItem {...item} onMapClick={() => {
@@ -92,7 +91,7 @@ export default function AlertHeader() {
 
                 /* --- Alert Map --- */
                 : <AlertItemMap alerts={alerts} activeFilter={activeFilter} focusedAlert={focusedAlert} onPinClick={(alert) => {
-                    const key = (alert as any).id || `${alert.lat}-${alert.lng}-${alerts.indexOf(alert)}`;
+                    const key = alert.id || `${alert.lat}-${alert.lng}-${alerts.indexOf(alert)}`;
                     setDisplayMode("list");
                     setFocusedAlert(null); // Scroll to the alert card after switching to list mode
                     setTimeout(() => {
