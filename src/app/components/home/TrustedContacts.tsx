@@ -69,8 +69,8 @@ export default function TrustedContacts() {
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-sm font-bold text-[#1f2937]">{contact.name}</span>
-              <span className="truncate text-xs text-foreground">{contact.unit}</span>
+              <span className="whitespace-normal wrap-break-word text-sm font-bold text-[#1f2937]">{contact.name}</span>
+              <span className="whitespace-normal wrap-break-word text-xs text-foreground">{contact.unit}</span>
               <span className="text-sm font-semibold text-[#111827]">{contact.phone}</span>
             </div>
 

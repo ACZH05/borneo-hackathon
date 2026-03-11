@@ -2,11 +2,11 @@
 
 export default function ResourceMenu() {
     return (
-        <div className="flex flex-col gap-10 p-10">
+        <div className="flex flex-col gap-8 p-10">
             <div className="flex flex-col gap-10">
                 {/* --- Title --- */}
-                <h1 className="text-6xl font-bold">
-                    <span>Preparedness </span>
+                <h1 className="wrap-break-word text-6xl font-bold">
+                    <span>Prepared </span>
                     <span className=" text-primary">Resources</span>
                 </h1>
 
@@ -18,11 +18,11 @@ export default function ResourceMenu() {
             </div>
 
             {/* --- Resource Cards --- */}
-            <div className="flex flex-wrap items-stretch justify-center gap-10 w-full">
+            <div className="grid grid-cols-1 items-stretch gap-6 w-full lg:grid-cols-2 lg:gap-10">
                 {/* --- AI Survival Simulator Card --- */}
                 <div
                     onClick={() => window.location.href = "/page-resources/page-resources-simulation"}
-                    className="flex flex-1 flex-col items-center justify-center gap-6 rounded-xl shadow-2xl bg-white min-w-100 p-8 active:scale-[0.96] hover:scale-[0.98] transition-transform duration-200"
+                    className="flex min-w-0 w-full flex-col items-center justify-center gap-5 rounded-xl bg-white p-5 shadow-2xl transition-transform duration-200 active:scale-[0.96] hover:scale-[0.98] sm:p-6 lg:gap-6 lg:p-8"
                 >
                     {/* --- Icon --- */}
                     <div className="flex items-center gap-2 p-4 rounded-full bg-secondary/20">
@@ -30,9 +30,9 @@ export default function ResourceMenu() {
                     </div>
 
                     {/* Text */}
-                    <span className="font-extrabold text-2xl">AI Survival Simulator</span>
+                    <span className="text-center text-xl font-extrabold wrap-break-word sm:text-2xl">AI Survival Simulator</span>
                     <hr className="w-full border-gray-300" />
-                    <span className="text-center">Test your knowledge and decision-making in high-stakes emergency scenarios powered by advanced AI modeling.</span>
+                    <span className="text-center wrap-break-word">Test your knowledge and decision-making in high-stakes emergency scenarios powered by advanced AI modeling.</span>
 
                     {/* Button */}
                     <button className="font-bold text-primary hover:underline">Start Simulation</button>
@@ -41,7 +41,7 @@ export default function ResourceMenu() {
                 {/* --- Smart Emergency Checklists Card --- */}
                 <div 
                     onClick={() => window.location.href = "/page-resources/page-resources-checklist"}
-                    className="flex flex-1 flex-col items-center justify-center gap-6 rounded-2xl shadow-2xl bg-white min-w-100 p-8 active:scale-[0.96] hover:scale-[0.98] transition-transform duration-200"
+                    className="flex min-w-0 w-full flex-col items-center justify-center gap-5 rounded-2xl bg-white p-5 shadow-2xl transition-transform duration-200 active:scale-[0.96] hover:scale-[0.98] sm:p-6 lg:gap-6 lg:p-8"
                 >
                     {/* --- Icon --- */}
                     <div className="flex items-center gap-2 p-4 rounded-full bg-secondary/20">
@@ -49,9 +49,9 @@ export default function ResourceMenu() {
                     </div>
 
                     {/* Text */}
-                    <span className="font-extrabold text-2xl">Smart Emergency Checklists</span>
+                    <span className="text-center text-xl font-extrabold wrap-break-word sm:text-2xl">Smart Emergency Checklists</span>
                     <hr className="w-full border-gray-300" />
-                    <span className="text-center">Generate and manage personalized preparedness lists for your home and family based on your specific location and needs.</span>
+                    <span className="text-center wrap-break-word">Generate and manage personalized preparedness lists for your home and family based on your specific location and needs.</span>
 
                     {/* Button */}
                     <button className="font-bold text-primary hover:underline">Generate Checklist</button>

@@ -34,17 +34,16 @@ export default function EmergencyDetailsComponent({
         EMERGENCY DETAILS
         <ArrowForwardIosIcon />
       </div>
-      <div className="flex gap-4">
-        <div className="">
+      <div className="flex flex-wrap gap-6">
+        <div className="flex flex-col items-start justify-start">
           <span className="text-xs">NAME</span>
-          <br />
-          <span className="font-bold">{name || "-"}</span>
+          <span className="wrap-break-word font-bold">{name || "-"}</span>
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 flex-col item-start justify-start">
           <span className="text-xs">EMERGENCY CONTACT</span>
-          <span className="font-bold">{emergencyContactName || "-"}</span>
-          <div className="items-center text-xs">
+          <span className="wrap-break-word font-bold">{emergencyContactName || "-"}</span>
+          <div className="flex gap-1 items-center text-xs break-all">
             <CallIcon fontSize="small" />
             {emergencyContactPhone || "-"}
           </div>
@@ -55,11 +54,17 @@ export default function EmergencyDetailsComponent({
         onClose={() => setIsOpen(false)}
         className="flex justify-center items-center"
       >
-        <div className="bg-white rounded-2xl">
+        <div className="bg-white rounded-2xl" onClick={(event) => event.stopPropagation()}>
           <div className="grid grid-cols-3 grid-rows-3 gap-4 p-4">
             <div className="flex justify-between items-center col-span-3">
               {name || "-"}
-              <div onClick={() => setIsOpen(false)} className="cursor-pointer">
+              <div
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsOpen(false);
+                }}
+                className="cursor-pointer"
+              >
                 <CloseIcon />
               </div>
             </div>
