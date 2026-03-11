@@ -11,8 +11,7 @@ const navLinks = [
   { name: "Home", href: "/" },
   { name: "Alerts", href: "/page-alerts" },
   { name: "Resources", href: "/page-resources" },
-  { name: "Supports", href: "/page-supports" },
-  { name: "Settings", href: "/page-settings" },
+  { name: "Profile", href: "/page-profile" },
 ];
 
 export default function Header() {

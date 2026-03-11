@@ -77,17 +77,16 @@ export async function POST(request: Request) {
     const user = await prisma.user.upsert({
       where: { id: id },
       update: {
-        email: email,
-        name: name,
-        // If we got GPS coordinates this time, update their region. Otherwise, leave it alone.
+        // We completely removed `name: name` from here! 
+        // Now, when they log back in, the database will not overwrite their custom profile.
         ...(lat && lng ? { regionCode: detectedRegionCode } : {})
       },
       create: {
         id: id,
         email: email,
-        name: name || "Resident",
+        name: name || "Resident", // New users still get this default name!
         role: "resident",
-        regionCode: detectedRegionCode, // Saves the auto-detected code!
+        regionCode: detectedRegionCode, 
       }
     });
 
