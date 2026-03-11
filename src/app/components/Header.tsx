@@ -8,6 +8,7 @@ import AuthWindow from "@/app/components/Auth-Window";
 import { supabase } from "../../../lib/supabase";
 
 // --- Navigation Link List ---
+
 const residentNavLinks = [
   { name: "Home", href: "/", icon: "home" },
   { name: "Alerts", href: "/page-alerts", icon: "notifications" },
@@ -20,14 +21,14 @@ const residentNavLinks = [
       { name: "Checklist", href: "/page-resources/page-resources-checklist" },
     ],
   },
-  { name: "Supports", href: "/page-supports", icon: "help" },
-  { name: "Settings", href: "/page-settings", icon: "settings" },
+  { name: "Profile", href: "/page-profile", icon: "person" },
 ];
 
 const adminNavLinks = [
   { name: "SOS", href: "/admin/sos" },
   { name: "Alert", href: "/admin/alert" },
   { name: "Profile", href: "/admin/profile" },
+
 ];
 
 export default function Header() {
