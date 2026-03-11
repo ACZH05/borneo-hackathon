@@ -1,7 +1,7 @@
+import ResourceMenu from "./components/Resource-Menu";
+
 export default function ResourcesPage() {
   return (
-    <div>
-        Resources Page
-    </div>
+    <ResourceMenu />
   );
 }

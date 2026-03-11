@@ -15,50 +15,61 @@ import {
   RadioGroup,
   TextField,
 } from "@mui/material";
-import { supabase } from "../../../../lib/supabase";
 
-export default function ButtonListComponent() {
+export default function ButtonListComponent({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [hazard, setHazard] = useState("");
   const [description, setDescription] = useState("");
-  const [location, setLocation] = useState({ lat: 0, lng: 0 });
 
-  const getLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-      },
-    );
-  };
-
-  const handleSubmit = async () => {
-    console.log(hazard);
-    console.log(description);
-    const token = localStorage.getItem("supabase.auth.token");
-    const { data } = await supabase.auth.getUser(token!);
-    const userId = data.user?.id;
-
-    getLocation();
-
-    const response = await fetch("/api/reports", {
-      method: "POST",
-      body: JSON.stringify({
-        userId,
-        lat: location.lat,
-        lng: location.lng,
-        hazardType: hazard,
-        description,
-      }),
+  const getLocation = () =>
+    new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          reject(error);
+        },
+      );
     });
 
-    const { message } = await response.json();
-    console.log(message);
+  const handleSubmit = async () => {
+    if (!userId) {
+      console.error("Missing userId for SOS request");
+      return;
+    }
+
+    try {
+      const location = await getLocation();
+
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          lat: location.lat,
+          lng: location.lng,
+          hazardType: hazard,
+          description,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error("SOS request failed", errorData ?? response.statusText);
+        return;
+      }
+
+      const { message } = await response.json();
+      console.log(message);
+    } catch (error) {
+      console.error("Failed to send SOS request:", error);
+    }
   };
 
   const hazards = [
