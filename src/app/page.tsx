@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import ButtonListComponent from "./components/home/ButtonListComponent";
 import EmergencyDetailsComponent from "./components/home/EmergencyDetailsComponent";
 import LatestAlert from "./components/home/LatestAlert";
+import PlatformStatus from "./components/home/PlatformStatus";
+import TrustedContacts from "./components/home/TrustedContacts";
 import { supabase } from "../../lib/supabase";
+import MapDisplay from "./api/map/route";
+import { requestUserLocation } from "@/app/api/permission/route";
 
 type RescueCardData = {
   bloodType?: string;
   medicalConditions?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  homeAddress?: string;
   qrCodeData?: string;
 };
 
@@ -19,6 +24,13 @@ export default function HomePage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [rescueCard, setRescueCard] = useState<RescueCardData | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    requestUserLocation(true).then((location) => {
+      if (location) setUserLocation(location);
+    });
+  }, []);
 
   useEffect(() => {
     const getUserDetails = async () => {
@@ -80,8 +92,8 @@ export default function HomePage() {
   }, [email, userId]);
 
   return (
-    <div className="grid grid-cols-4 grid-rows-4 gap-x-4 gap-y-8 p-8">
-      <div className="flex flex-col gap-8 col-span-2 row-span-2">
+    <div className="grid grid-cols-4 gap-x-4 gap-y-8 p-8">
+      <div className="flex flex-col gap-8 col-span-2">
         <div className="text-6xl font-bold">
           Together for a <br />
           <span>Resilient Borneo</span>
@@ -100,15 +112,25 @@ export default function HomePage() {
           medicalConditions={rescueCard?.medicalConditions ?? ""}
           emergencyContactName={rescueCard?.emergencyContactName ?? ""}
           emergencyContactPhone={rescueCard?.emergencyContactPhone ?? ""}
+          homeAddress={rescueCard?.homeAddress ?? ""}
           qrCodeData={rescueCard?.qrCodeData ?? ""}
         />
       </div>
-      <div className="col-span-2 row-span-2 col-start-3 bg-blue-50">2</div>
-      <div className="col-span-3 row-span-2 row-start-3">
+
+      <div className="col-span-2 bg-blue-50">
+        <div className="flex items-center justify-center h-full w-full">
+          <MapDisplay latitude={userLocation?.lat ?? null} longitude={userLocation?.lng ?? null} />
+        </div>
+      </div>
+
+      <div className="col-span-3">
         <LatestAlert />
       </div>
-      <div className="col-start-4 row-start-3 bg-yellow-50">4</div>
-      <div className="col-start-4 row-start-4 bg-purple-50">5</div>
+
+      <div className="col-span-1 flex flex-col gap-4">
+        <PlatformStatus />
+        <TrustedContacts />
+      </div>
     </div>
   );
 }

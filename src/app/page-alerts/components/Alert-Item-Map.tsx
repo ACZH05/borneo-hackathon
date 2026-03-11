@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
-import { AlertItemInfo } from "./Alert-Item-Info";
+import { AlertItemInfo } from "@/app/api/alert/util/types";
 import { filterOptions } from "./Alert-Filter";
 import { requestUserLocation } from "@/app/api/permission/route";
 
@@ -25,8 +25,11 @@ export default function AlertItemMap({ alerts, activeFilter, focusedAlert, onPin
         });
     }, []);
 
+    // --- Filter Alerts Without Valid Coordinates ---
+    const validAlerts = alerts.filter(alert => typeof alert.lat === "number" && typeof alert.lng === "number");
+
     // --- Filter Alerts by Category ---
-    const filteredAlerts = alerts.filter((item) =>
+    const filteredAlerts = validAlerts.filter((item) =>
         activeFilter === "all" ||
         (activeFilter === "other"
             ? !["flood", "landslide", "tidal"].includes(item.hazardType)
