@@ -7,8 +7,20 @@ import { AuthStatus, Logout } from "@/app/api/auth/verification/route";
 import AuthWindow from "@/app/components/Auth-Window";
 import { supabase } from "../../../lib/supabase";
 
+type NavSubLink = {
+  name: string;
+  href: string;
+};
+
+type NavLink = {
+  name: string;
+  href: string;
+  icon?: string;
+  subLinks?: NavSubLink[];
+};
+
 // --- Navigation Link List ---
-const residentNavLinks = [
+const residentNavLinks: NavLink[] = [
   { name: "Home", href: "/", icon: "home" },
   { name: "Alerts", href: "/page-alerts", icon: "notifications" },
   {
@@ -23,7 +35,7 @@ const residentNavLinks = [
   { name: "Profile", href: "/page-profile", icon: "person" },
 ];
 
-const adminNavLinks = [
+const adminNavLinks: NavLink[] = [
   { name: "SOS", href: "/admin/sos" },
   { name: "Alert", href: "/admin/alert" },
   { name: "Profile", href: "/admin/profile" },
@@ -33,9 +45,7 @@ export default function Header() {
   const pathname = usePathname();
 
   const [isAuthWindowOpen, setIsAuthWindowOpen] = useState(false); // State to control the visibility of the login window.
-  const [navLinks, setNavLinks] = useState<{ name: string; href: string }[]>(
-    [],
-  );
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const { isLoggedIn, isLoading } = AuthStatus(); // Store the login state of the user.
 
   useEffect(() => {
@@ -173,7 +183,7 @@ export default function Header() {
 function Drawer({
   navLinks,
 }: {
-  navLinks: { name: string; href: string }[];
+  navLinks: NavLink[];
 }): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
