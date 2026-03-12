@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { redirect, usePathname } from "next/navigation";
-import { JSX, useEffect, useState } from "react";
+import { redirect, usePathname, useRouter } from "next/navigation";
+import { JSX, useEffect, useMemo, useState } from "react";
 import { AuthStatus, Logout } from "@/app/api/auth/verification/route";
 import AuthWindow from "@/app/components/Auth-Window";
 import { supabase } from "../../../lib/supabase";
@@ -17,6 +17,13 @@ type NavLink = {
   href: string;
   icon?: string;
   subLinks?: NavSubLink[];
+};
+
+type SearchItem = {
+  name: string;
+  href: string;
+  description: string;
+  keywords: string[];
 };
 
 // --- Navigation Link List ---
@@ -41,11 +48,73 @@ const adminNavLinks: NavLink[] = [
   { name: "Profile", href: "/admin/profile" },
 ];
 
+const residentSearchItems: SearchItem[] = [
+  {
+    name: "Home",
+    href: "/",
+    description: "Open the dashboard and emergency overview.",
+    keywords: ["dashboard", "overview", "map", "status"],
+  },
+  {
+    name: "Alerts",
+    href: "/page-alerts",
+    description: "Check the latest emergency alerts and incidents.",
+    keywords: ["warning", "incident", "sos", "emergency"],
+  },
+  {
+    name: "Resources",
+    href: "/page-resources",
+    description: "Browse preparedness tools and emergency guides.",
+    keywords: ["help", "guides", "preparedness", "support"],
+  },
+  {
+    name: "AI Survival Simulator",
+    href: "/page-resources/page-resources-simulation",
+    description: "Practice emergency decisions with simulation scenarios.",
+    keywords: ["training", "quiz", "practice", "hazard", "simulation"],
+  },
+  {
+    name: "Smart Emergency Checklists",
+    href: "/page-resources/page-resources-checklist",
+    description: "Generate and manage your emergency checklist.",
+    keywords: ["list", "supplies", "plan", "preparedness", "checklist"],
+  },
+  {
+    name: "Profile",
+    href: "/page-profile",
+    description: "Manage your account and rescue card details.",
+    keywords: ["account", "rescue card", "medical", "contacts"],
+  },
+];
+
+const adminSearchItems: SearchItem[] = [
+  {
+    name: "SOS Dashboard",
+    href: "/admin/sos",
+    description: "Monitor and respond to SOS requests.",
+    keywords: ["rescue", "emergency", "requests", "dashboard"],
+  },
+  {
+    name: "Alert Management",
+    href: "/admin/alert",
+    description: "Create and manage community alerts.",
+    keywords: ["warning", "broadcast", "incident", "alert"],
+  },
+  {
+    name: "Admin Profile",
+    href: "/admin/profile",
+    description: "Manage administrator profile details.",
+    keywords: ["account", "profile", "settings"],
+  },
+];
+
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [isAuthWindowOpen, setIsAuthWindowOpen] = useState(false); // State to control the visibility of the login window.
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
+  const [searchItems, setSearchItems] = useState<SearchItem[]>(residentSearchItems);
   const { isLoggedIn, isLoading } = AuthStatus(); // Store the login state of the user.
 
   useEffect(() => {
@@ -56,6 +125,7 @@ export default function Header() {
 
       if (!userId) {
         setNavLinks(residentNavLinks);
+        setSearchItems(residentSearchItems);
         return;
       }
 
@@ -67,6 +137,7 @@ export default function Header() {
       const role = result?.user?.role;
 
       setNavLinks(role === "admin" ? adminNavLinks : residentNavLinks);
+      setSearchItems(role === "admin" ? adminSearchItems : residentSearchItems);
       
       if (role == "admin" && !pathname.startsWith("/admin"))
         redirect("/admin/sos");
@@ -140,16 +211,12 @@ export default function Header() {
       {/* Always show on all screen sizes although wrapped. */}
       <div className="flex gap-4 ml-auto">
         {/* --- Search Bar --- */} {/* Show only on desktop. */}
-        <div className="hidden xl:flex items-center rounded-full bg-foreground/8 border-none px-3 py-1">
-          <span className="material-symbols-outlined text-textGrey/60 text-xs">
-            search
-          </span>{" "}
-          {/* Search Icon from Google Material Symbols */}
-          <input
-            placeholder="Find help..."
-            className="rounded-full bg-transparent border-none outline-none placeholder:text-textGrey/60 placeholder:text-xs px-2"
-          ></input>
-        </div>
+        <SearchBar
+          items={searchItems}
+          pathname={pathname}
+          onNavigate={(href) => router.push(href)}
+          className="hidden xl:block"
+        />
         {/* --- Login / Logout Button --- */}
         {isLoading ? (
           // --- Skeleton Loader ---
@@ -190,6 +257,11 @@ function Drawer({
 }): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const searchItems = useMemo(
+    () => (pathname.startsWith("/admin") ? adminSearchItems : residentSearchItems),
+    [pathname]
+  );
 
   return (
     <>
@@ -214,15 +286,16 @@ function Drawer({
         }`}
       >
         {/* --- Search Bar --- */}
-        <div className="flex items-center rounded-full bg-foreground/8 border-none px-3 py-1 mx-2 my-4">
-          <span className="material-symbols-outlined text-textGrey/60 text-xs">
-            search
-          </span>{" "}
-          {/* Search Icon from Google Material Symbols */}
-          <input
-            placeholder="Find help..."
-            className="rounded-full bg-transparent border-none outline-none placeholder:text-textGrey/60 placeholder:text-xs px-2"
-          ></input>
+        <div className="mx-2 my-4">
+          <SearchBar
+            items={searchItems}
+            pathname={pathname}
+            onNavigate={(href) => {
+              setIsOpen(false);
+              router.push(href);
+            }}
+            resultsAlign="left"
+          />
         </div>
 
         {/* --- Menu Links --- */}
@@ -277,5 +350,136 @@ function Drawer({
         </nav>
       </aside>
     </>
+  );
+}
+
+function SearchBar({
+  items,
+  pathname,
+  onNavigate,
+  className = "",
+  resultsAlign = "right",
+}: {
+  items: SearchItem[];
+  pathname: string;
+  onNavigate: (href: string) => void;
+  className?: string;
+  resultsAlign?: "left" | "right";
+}): JSX.Element {
+  const [query, setQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredItems = useMemo(() => {
+    const searchableItems = items.filter((item) => item.href !== pathname);
+
+    if (!normalizedQuery) {
+      return searchableItems.slice(0, 5);
+    }
+
+    return searchableItems
+      .map((item) => {
+        const haystack = [
+          item.name,
+          item.description,
+          item.href,
+          ...item.keywords,
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        const score = [
+          item.name.toLowerCase().startsWith(normalizedQuery) ? 4 : 0,
+          item.keywords.some((keyword) =>
+            keyword.toLowerCase().startsWith(normalizedQuery)
+          )
+            ? 3
+            : 0,
+          haystack.includes(normalizedQuery) ? 1 : 0,
+        ].reduce((total, value) => total + value, 0);
+
+        return { item, score };
+      })
+      .filter(({ score }) => score > 0)
+      .sort((left, right) => right.score - left.score)
+      .slice(0, 5)
+      .map(({ item }) => item);
+  }, [items, normalizedQuery, pathname]);
+
+  const submitSearch = () => {
+    if (filteredItems.length === 0) return;
+
+    onNavigate(filteredItems[0].href);
+    setQuery("");
+    setIsOpen(false);
+  };
+
+  return (
+    <div className={`relative ${className}`.trim()}>
+      <div className="flex items-center rounded-full bg-foreground/8 border-none px-3 py-1">
+        <span className="material-symbols-outlined text-textGrey/60 text-xs">
+          search
+        </span>
+        <input
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => {
+            window.setTimeout(() => setIsOpen(false), 120);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              submitSearch();
+            }
+
+            if (event.key === "Escape") {
+              setIsOpen(false);
+            }
+          }}
+          placeholder="Find help..."
+          className="w-full min-w-40 rounded-full bg-transparent border-none outline-none placeholder:text-textGrey/60 placeholder:text-xs px-2 text-sm"
+        />
+      </div>
+
+      {isOpen && filteredItems.length > 0 && (
+        <div
+          className={`absolute top-full z-50 mt-2 w-full max-w-full overflow-hidden rounded-2xl border border-foreground/10 bg-surface shadow-xl sm:min-w-72 ${
+            resultsAlign === "left" ? "left-0" : "right-0"
+          }`}
+        >
+          {filteredItems.map((item) => (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => {
+                onNavigate(item.href);
+                setQuery("");
+                setIsOpen(false);
+              }}
+              className="flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition-colors hover:bg-secondary/15"
+            >
+              <span className="text-sm font-bold text-foreground">
+                {item.name}
+              </span>
+              <span className="text-xs text-textGrey">{item.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isOpen && normalizedQuery && filteredItems.length === 0 && (
+        <div
+          className={`absolute top-full z-50 mt-2 w-full max-w-full rounded-2xl border border-foreground/10 bg-surface px-4 py-3 text-xs text-textGrey shadow-xl sm:min-w-72 ${
+            resultsAlign === "left" ? "left-0" : "right-0"
+          }`}
+        >
+          No matching help page found.
+        </div>
+      )}
+    </div>
   );
 }
