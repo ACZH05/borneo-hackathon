@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { redirect, usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { JSX, useEffect, useMemo, useState } from "react";
 import { AuthStatus, Logout } from "@/app/api/auth/verification/route";
 import AuthWindow from "@/app/components/Auth-Window";
@@ -138,12 +138,18 @@ export default function Header() {
       setNavLinks(role === "admin" ? adminNavLinks : residentNavLinks);
       setSearchItems(role === "admin" ? adminSearchItems : residentSearchItems);
 
-      if (role == "admin" && !pathname.startsWith("/admin"))
-        redirect("/admin/sos");
+      if (role === "admin" && !pathname.startsWith("/admin")) {
+        router.replace("/admin/sos");
+        return;
+      }
+
+      if (role !== "admin" && pathname.startsWith("/admin")) {
+        router.replace("/");
+      }
     };
 
     setNavBar();
-  }, [pathname, userId]);
+  }, [pathname, router, userId]);
 
   return (
     <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm w-full px-8 py-4">
