@@ -12,6 +12,7 @@ import { useUserContext } from "./provider/UserIdProvider";
 
 type RescueCardData = {
   bloodType?: string;
+  allergies?: string;
   medicalConditions?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
@@ -100,6 +101,7 @@ export default function HomePage() {
         <EmergencyDetailsComponent
           name={name}
           bloodType={rescueCard?.bloodType ?? ""}
+          allergies={rescueCard?.allergies ?? ""}
           medicalConditions={rescueCard?.medicalConditions ?? ""}
           emergencyContactName={rescueCard?.emergencyContactName ?? ""}
           emergencyContactPhone={rescueCard?.emergencyContactPhone ?? ""}
