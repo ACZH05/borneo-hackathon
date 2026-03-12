@@ -2,6 +2,7 @@
 
 import { useEffect,  useState } from "react";
 import { requestUserLocation } from "@/app/api/permission/route";
+import { supabase } from "@/app/lib/supabase";
 
 // --- Login Status Listener ---
 // Once the user is redirected back from the magic link, this component will detect the token in the URL, store it and sync the user info to our database.
@@ -129,8 +130,10 @@ export function Login() {
       }
 
       setMessage({ type: 'success', text: "Check your email for the magic link!" });
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to send link";
+      setMessage({ type: 'error', text: message });
     } finally {
       setLoading(false);
     }
@@ -144,9 +147,16 @@ export const Logout = async () => {
   // 1. Look for the token in localStorage.
   const token = localStorage.getItem("supabase.auth.token"); 
 
+  // 2. Ask Supabase client to clear any persisted auth session.
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error("Error clearing Supabase client session:", error);
+  }
+
   if (token) {
     try {
-      // 2. Inform Supabase about the logout so it can invalidate the session on their end.
+      // 3. Inform Supabase about the logout so it can invalidate the session on their end.
       await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/logout`, {
         method: "POST",
         headers: {
@@ -160,9 +170,14 @@ export const Logout = async () => {
     }
   }
 
-  // 3. Remove the token from localStorage to log the user out on the client side.
+  // 4. Remove local auth tokens from browser storage.
   localStorage.removeItem("supabase.auth.token");
+  Object.keys(localStorage).forEach((key) => {
+    if (/^sb-.*-auth-token$/.test(key)) {
+      localStorage.removeItem(key);
+    }
+  });
 
-  // 4. Reload the page to update the UI and reflect the logged-out state.
-  window.location.reload(); 
+  // 5. Force navigation to resident home after logout.
+  window.location.replace("/");
 };

@@ -18,11 +18,18 @@ export default function UserIdProvider({
   const [email, setEmail] = useState("");
   useEffect(() => {
     const getUser = async () => {
+      const token = localStorage.getItem("supabase.auth.token");
+      if (!token) {
+        setUserId("");
+        setEmail("");
+        return;
+      }
+
       const { data } = await supabase.auth.getUser();
       const userId = data.user?.id;
       const email = data.user?.email;
-      setUserId(userId!);
-      setEmail(email!);
+      setUserId(userId ?? "");
+      setEmail(email ?? "");
     };
     getUser();
   }, []);

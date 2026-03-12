@@ -122,6 +122,15 @@ export default function Header() {
 
   useEffect(() => {
     const setNavBar = async () => {
+      if (!isLoading && !isLoggedIn) {
+        setNavLinks(residentNavLinks);
+        setSearchItems(residentSearchItems);
+        if (pathname.startsWith("/admin")) {
+          router.replace("/");
+        }
+        return;
+      }
+
       if (!userId) {
         setNavLinks(residentNavLinks);
         setSearchItems(residentSearchItems);
@@ -149,7 +158,7 @@ export default function Header() {
     };
 
     setNavBar();
-  }, [pathname, router, userId]);
+  }, [isLoading, isLoggedIn, pathname, router, userId]);
 
   return (
     <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm w-full px-8 py-4">

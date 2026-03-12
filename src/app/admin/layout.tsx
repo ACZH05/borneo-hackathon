@@ -18,6 +18,12 @@ export default function AdminLayout({
 
     const checkAdminAccess = async () => {
       try {
+        const token = localStorage.getItem("supabase.auth.token");
+        if (!token) {
+          router.replace("/");
+          return;
+        }
+
         const {
           data: { user },
         } = await supabase.auth.getUser();
