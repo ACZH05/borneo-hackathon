@@ -54,6 +54,11 @@ export default function Header() {
       const { data } = await supabase.auth.getUser(token!);
       const userId = data.user?.id;
 
+      if (!userId) {
+        setNavLinks(residentNavLinks);
+        return;
+      }
+
       const response = await fetch(`/api/user/${userId}`, {
         method: "GET",
       });
@@ -61,10 +66,8 @@ export default function Header() {
       const result = await response.json();
       const role = result?.user?.role;
 
-      setNavLinks(
-        (await role) == "resident" ? residentNavLinks : adminNavLinks,
-      );
-
+      setNavLinks(role === "admin" ? adminNavLinks : residentNavLinks);
+      
       if (role == "admin" && !pathname.startsWith("/admin"))
         redirect("/admin/sos");
     };
