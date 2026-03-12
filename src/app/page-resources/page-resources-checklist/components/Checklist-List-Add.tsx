@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { EmergencyPlan } from "./types";
 
 type ChecklistListAddProps = {
@@ -9,6 +9,11 @@ type ChecklistListAddProps = {
 };
 
 const PRESET_HAZARDS = ["Flood", "Landslide", "Wildfire"];
+const GENERATING_PROMPTS = [
+	"Analyzing your household details...",
+	"Building a hazard-specific supply list...",
+	"Preparing a practical response checklist...",
+];
 
 export default function ChecklistListAdd({ userId, onPlanGenerated }: ChecklistListAddProps) {
 	const [selectedHazard, setSelectedHazard] = useState(PRESET_HAZARDS[0]);
@@ -18,12 +23,26 @@ export default function ChecklistListAdd({ userId, onPlanGenerated }: ChecklistL
 	const [specialNeeds, setSpecialNeeds] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [promptIndex, setPromptIndex] = useState(0);
 
 	const hazardType = useMemo(() => {
 		if (selectedHazard === "Other")
 			return customHazard.trim();
 		return selectedHazard;
 	}, [customHazard, selectedHazard]);
+
+	useEffect(() => {
+		if (!isSubmitting) {
+			setPromptIndex(0);
+			return;
+		}
+
+		const intervalId = window.setInterval(() => {
+			setPromptIndex((currentPrompt) => (currentPrompt + 1) % GENERATING_PROMPTS.length);
+		}, 1800);
+
+		return () => window.clearInterval(intervalId);
+	}, [isSubmitting]);
 
 	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -68,15 +87,31 @@ export default function ChecklistListAdd({ userId, onPlanGenerated }: ChecklistL
 	};
 
 	return (
-		<div className="flex flex-col gap-6 h-full">
+		<div className="relative flex flex-col gap-6 h-full">
+			{isSubmitting && (
+				<div className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-surface/70 backdrop-blur-xs">
+					<div className="flex max-w-sm flex-col items-center gap-4 px-6 text-center">
+						<div className="relative flex h-20 w-20 items-center justify-center">
+							<div className="absolute h-20 w-20 rounded-full border-4 border-primary/20" />
+							<div className="h-20 w-20 animate-spin rounded-full border-4 border-primary/25 border-t-primary shadow-lg" />
+							<div className="absolute h-10 w-10 rounded-full bg-primary/10" />
+						</div>
+						<div className="space-y-1">
+							<p className="text-lg font-bold text-foreground">Generating checklist</p>
+							<p className="text-sm text-textGrey">{GENERATING_PROMPTS[promptIndex]}</p>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* --- Title & Description --- */}
-			<div className="flex flex-col items-center justify-center gap-3">
+			<div className={`flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${isSubmitting ? "opacity-40" : "opacity-100"}`}>
 				<h1 className="text-3xl font-bold">Create Checklist</h1>
 				<p className="text-textGrey">Fill in your household details so AI can generate a focused checklist.</p>
 			</div>
 
 			{/* --- Input Field --- */}
-			<form onSubmit={onSubmit} className="space-y-3 flex flex-col items-stretch justify-center">
+			<form onSubmit={onSubmit} className={`space-y-3 flex flex-col items-stretch justify-center transition-opacity duration-300 ${isSubmitting ? "opacity-40 pointer-events-none" : "opacity-100"}`}>
 				<div>
 					<label className="block text-sm font-semibold mb-2">Hazard Type</label>
 					<div className="relative">
