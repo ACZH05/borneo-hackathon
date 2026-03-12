@@ -34,9 +34,9 @@ export default async function SOSLayout({
   const reports: Report[] = data?.reports;
 
   return (
-    <div className="grid grid-cols-[1fr_2fr] h-auto overflow-hidden">
-      <div className="">
-        <div className="flex flex-col gap-4 p-6">
+    <div className="grid h-full min-h-0 grid-cols-[1fr_2fr] overflow-hidden">
+      <div className="flex min-h-0 flex-col">
+        <div className="flex shrink-0 flex-col gap-4 p-6">
           <div className="flex justify-between">
             <span className="text-xl font-bold">Active SOS Requests</span>
             <ReplayIcon />
@@ -46,7 +46,7 @@ export default async function SOSLayout({
             <FilterChips severity={chips[0].severity} />
           </div>
         </div>
-        <div className="flex flex-col overflow-y-scroll">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {reports.map((report) => (
             <RequestTab
               key={report.id}
@@ -58,7 +58,7 @@ export default async function SOSLayout({
           ))}
         </div>
       </div>
-      {children}
+      <div className="min-h-0 overflow-y-auto">{children}</div>
     </div>
   );
 }
