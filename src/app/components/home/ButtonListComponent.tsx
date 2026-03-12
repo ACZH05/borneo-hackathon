@@ -1,6 +1,5 @@
 "use client";
 
-import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import RingVolumeIcon from "@mui/icons-material/RingVolume";
 import EmergencyIcon from "@mui/icons-material/Emergency";
 import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
@@ -20,6 +19,7 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [hazard, setHazard] = useState("");
   const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getLocation = () =>
     new Promise<{ lat: number; lng: number }>((resolve, reject) => {
@@ -37,13 +37,24 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
     });
 
   const handleSubmit = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
     if (!userId) {
       console.error("Missing userId for SOS request");
       return;
     }
 
+    if (!hazard) {
+      console.error("Hazard type is required for SOS request");
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
       const location = await getLocation();
+      const payloadDescription = description.trim() || "No description provided";
 
       const response = await fetch("/api/reports", {
         method: "POST",
@@ -55,7 +66,7 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
           lat: location.lat,
           lng: location.lng,
           hazardType: hazard,
-          description,
+          description: payloadDescription,
         }),
       });
 
@@ -67,25 +78,27 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
 
       const { message } = await response.json();
       console.log(message);
+      setIsOpen(false);
+      setHazard("");
+      setDescription("");
     } catch (error) {
       console.error("Failed to send SOS request:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const hazards = [
     { label: "Flood", value: "flood" },
     { label: "Landslide", value: "landslide" },
+    { label: "Tidal", value: "tidal" },
     { label: "Medical", value: "medical" },
     { label: "Infrastructure", value: "infrastructure" },
+    { label: "Other", value: "other" },
   ];
 
   return (
     <div className="flex gap-4 text-surface font-bold">
-      <button className="flex gap-2 px-8 py-4 bg-primary shadow rounded-full transition hover:-translate-1 cursor-pointer">
-        <HealthAndSafetyOutlinedIcon />
-        Find Safe Zone
-      </button>
-
       <button
         onClick={() => setIsOpen(true)}
         className="flex gap-2 px-8 py-4 bg-priority shadow rounded-full transition hover:-translate-1 cursor-pointer"
@@ -114,9 +127,10 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
               </FormLabel>
               <RadioGroup
                 aria-labelledby="hazard-type-selection"
+                value={hazard}
                 onChange={(e) => setHazard(e.target.value)}
               >
-                <div className="grid grid-cols-2 grid-rows-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   {hazards.map((hazard) => (
                     <FormControlLabel
                       label={hazard.label}
@@ -134,6 +148,7 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
                 rows={4}
                 placeholder="Briefly describe your situation..."
                 fullWidth
+                value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
 
@@ -145,10 +160,11 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
               </div>
 
               <button
+                disabled={isSubmitting || !hazard}
                 className="bg-priority text-white py-4 rounded-xl shadow-2xl cursor-pointer"
                 onClick={() => handleSubmit()}
               >
-                SEND SOS SIGNAL
+                {isSubmitting ? "SENDING..." : "SEND SOS SIGNAL"}
               </button>
             </FormControl>
           </div>
