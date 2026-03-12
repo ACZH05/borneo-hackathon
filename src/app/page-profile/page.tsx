@@ -564,10 +564,11 @@ export default function ProfilePage() {
           <div className="flex-1 space-y-6">
             
             {/* Account Details */}
-            <div className="bg-surface border border-foreground/10 shadow-sm rounded-3xl px-8 py-4">
+            <div className="bg-surface border-2 border-green-500/20 shadow-sm rounded-3xl px-8 py-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500/80" />
               <div className="flex justify-between items-center pt-4 pb-4 border-b border-foreground/10">
-                <h3 className="text-xs text-textGrey font-bold uppercase tracking-widest">Account Details</h3>
-                <button onClick={() => setEditOpen(true)} className="text-sm font-bold text-primary bg-primary/10 px-4 py-1.5 rounded-full hover:bg-primary/20 transition-all">
+                <h3 className="text-xs text-green-600 font-bold uppercase tracking-widest">Account Details</h3>
+                <button onClick={() => setEditOpen(true)} className="text-sm font-bold text-green-600 bg-green-500/10 px-4 py-1.5 rounded-full hover:bg-green-500/20 transition-all">
                   Edit Identity
                 </button>
               </div>
