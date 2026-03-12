@@ -51,3 +51,26 @@ export async function PATCH(
     return NextResponse.json({ error: "Failed to update checklist" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const resolvedParams = await params;
+    const planId = resolvedParams.id;
+
+    if (!planId) {
+      return NextResponse.json({ error: "Missing plan id" }, { status: 400 });
+    }
+
+    await prisma.emergencyPlan.delete({
+      where: { id: planId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting checklist:", error);
+    return NextResponse.json({ error: "Failed to delete checklist" }, { status: 500 });
+  }
+}

@@ -1,32 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ChecklistItem, EmergencyPlan } from "./types";
 
 type ChecklistListViewProps = {
 	plan: EmergencyPlan | null;
 	isPersisting: boolean;
+	isDeleting: boolean;
 	hasPendingChanges: boolean;
 	onChecklistChange: (checklist: ChecklistItem[]) => void;
 	onSave: () => Promise<void>;
+	onDelete: () => Promise<void>;
 };
 
 export default function ChecklistListView({
 	plan,
 	isPersisting,
+	isDeleting,
 	hasPendingChanges,
 	onChecklistChange,
 	onSave,
+	onDelete,
 }: ChecklistListViewProps) {
-	const [localChecklist, setLocalChecklist] = useState<ChecklistItem[]>([]);
-
-	useEffect(() => {
-		if (!plan) {
-			setLocalChecklist([]);
-			return;
-		}
-		setLocalChecklist(plan.checklist);
-	}, [plan]);
+	const localChecklist = useMemo(() => plan?.checklist ?? [], [plan]);
 
 	const completionCount = useMemo(
 		() => localChecklist.filter((item) => item.isCompleted).length,
@@ -38,7 +34,6 @@ export default function ChecklistListView({
 		const nextChecklist = localChecklist.map((item, itemIndex) =>
 			itemIndex === index ? { ...item, isCompleted: !item.isCompleted } : item
 		);
-		setLocalChecklist(nextChecklist);
 		onChecklistChange(nextChecklist);
 	};
 
@@ -100,10 +95,25 @@ export default function ChecklistListView({
 			{/* --- Save Button --- */}
 			<button
 				onClick={onSave}
-				disabled={isPersisting}
+				disabled={isPersisting || isDeleting}
 				className="rounded-lg bg-primary text-white px-5 py-3 font-semibold disabled:opacity-60"
 			>
 				{isPersisting ? "Saving..." : "Save Checklist"}
+			</button>
+
+			<button
+				onClick={async () => {
+					const shouldDelete = window.confirm(
+						"Delete this checklist permanently? This action cannot be undone."
+					);
+
+					if (!shouldDelete) return;
+					await onDelete();
+				}}
+				disabled={isPersisting || isDeleting}
+				className="rounded-lg bg-red-600 text-white px-5 py-3 font-semibold disabled:opacity-60"
+			>
+				{isDeleting ? "Deleting..." : "Delete Checklist"}
 			</button>
 		</div>
 	);
