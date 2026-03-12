@@ -2,6 +2,7 @@ import "./globals.css";
 import AuthListener from "@/app/api/auth/verification/route";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
+import UserIdProvider from "./provider/UserIdProvider";
 
 // --- Metadata ---
 export const metadata = {
@@ -31,11 +32,15 @@ export default function RootLayout({
       </head>
 
       <body className="antialiased flex flex-col h-full overflow-hidden">
-        <AuthListener />
-        <Header />
-        <main className="flex-1 min-h-0 overflow-y-auto">{children}</main>{" "}
-        {/* Pass the content in "page.tsx" as children to the layout */}
-        <Footer />
+        <UserIdProvider>
+          <AuthListener />
+          <Header />
+          <main className="flex-1 min-h-0 overflow-y-auto">
+            {children}
+          </main>{" "}
+          {/* Pass the content in "page.tsx" as children to the layout */}
+          <Footer />
+        </UserIdProvider>
       </body>
     </html>
   );

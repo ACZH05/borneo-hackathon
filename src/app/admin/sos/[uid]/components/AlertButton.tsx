@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 import { FormControl, Input, InputLabel, Modal } from "@mui/material";
-import { supabase } from "@/app/lib/supabase";
+import { useUserContext } from "@/app/provider/UserIdProvider";
 
 type ReportType = {
   id: string;
@@ -29,6 +29,8 @@ function AlertButton({ uid }: { uid: string }) {
   const [regionCode, setRegionCode] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
+
+  const { userId } = useUserContext();
 
   useEffect(() => {
     const getReport = async () => {
@@ -70,8 +72,6 @@ function AlertButton({ uid }: { uid: string }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { data } = await supabase.auth.getUser();
-    const userId = data.user?.id;
     await fetch("/api/alert", {
       method: "POST",
       body: JSON.stringify({

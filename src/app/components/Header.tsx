@@ -5,7 +5,7 @@ import { redirect, usePathname, useRouter } from "next/navigation";
 import { JSX, useEffect, useMemo, useState } from "react";
 import { AuthStatus, Logout } from "@/app/api/auth/verification/route";
 import AuthWindow from "@/app/components/Auth-Window";
-import { supabase } from "../../../lib/supabase";
+import { useUserContext } from "../provider/UserIdProvider";
 
 type NavSubLink = {
   name: string;
@@ -114,15 +114,14 @@ export default function Header() {
 
   const [isAuthWindowOpen, setIsAuthWindowOpen] = useState(false); // State to control the visibility of the login window.
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
-  const [searchItems, setSearchItems] = useState<SearchItem[]>(residentSearchItems);
+  const [searchItems, setSearchItems] =
+    useState<SearchItem[]>(residentSearchItems);
   const { isLoggedIn, isLoading } = AuthStatus(); // Store the login state of the user.
+
+  const { userId } = useUserContext();
 
   useEffect(() => {
     const setNavBar = async () => {
-      const token = localStorage.getItem("supabase.auth.token");
-      const { data } = await supabase.auth.getUser(token!);
-      const userId = data.user?.id;
-
       if (!userId) {
         setNavLinks(residentNavLinks);
         setSearchItems(residentSearchItems);
@@ -138,13 +137,13 @@ export default function Header() {
 
       setNavLinks(role === "admin" ? adminNavLinks : residentNavLinks);
       setSearchItems(role === "admin" ? adminSearchItems : residentSearchItems);
-      
+
       if (role == "admin" && !pathname.startsWith("/admin"))
         redirect("/admin/sos");
     };
 
     setNavBar();
-  }, [pathname]);
+  }, [pathname, userId]);
 
   return (
     <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm w-full px-8 py-4">
@@ -250,17 +249,14 @@ export default function Header() {
   );
 }
 
-function Drawer({
-  navLinks,
-}: {
-  navLinks: NavLink[];
-}): JSX.Element {
+function Drawer({ navLinks }: { navLinks: NavLink[] }): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const searchItems = useMemo(
-    () => (pathname.startsWith("/admin") ? adminSearchItems : residentSearchItems),
-    [pathname]
+    () =>
+      pathname.startsWith("/admin") ? adminSearchItems : residentSearchItems,
+    [pathname],
   );
 
   return (
@@ -391,7 +387,7 @@ function SearchBar({
         const score = [
           item.name.toLowerCase().startsWith(normalizedQuery) ? 4 : 0,
           item.keywords.some((keyword) =>
-            keyword.toLowerCase().startsWith(normalizedQuery)
+            keyword.toLowerCase().startsWith(normalizedQuery),
           )
             ? 3
             : 0,

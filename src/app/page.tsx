@@ -6,9 +6,9 @@ import EmergencyDetailsComponent from "./components/home/EmergencyDetailsCompone
 import LatestAlert from "./components/home/LatestAlert";
 import PlatformStatus from "./components/home/PlatformStatus";
 import TrustedContacts from "./components/home/TrustedContacts";
-import { supabase } from "../../lib/supabase";
 import MapDisplay from "./api/map/route";
 import { requestUserLocation } from "@/app/api/permission/route";
+import { useUserContext } from "./provider/UserIdProvider";
 
 type RescueCardData = {
   bloodType?: string;
@@ -20,28 +20,19 @@ type RescueCardData = {
 };
 
 export default function HomePage() {
-  const [userId, setUserId] = useState("");
-  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [rescueCard, setRescueCard] = useState<RescueCardData | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  const { userId, email } = useUserContext();
 
   useEffect(() => {
     requestUserLocation(true).then((location) => {
       if (location) setUserLocation(location);
     });
-  }, []);
-
-  useEffect(() => {
-    const getUserDetails = async () => {
-      const { data } = await supabase.auth.getUser();
-      const userId = data.user?.id;
-      const email = data.user?.email;
-      setUserId(userId ?? "");
-      setEmail(email ?? "");
-    };
-
-    getUserDetails();
   }, []);
 
   useEffect(() => {
@@ -119,7 +110,10 @@ export default function HomePage() {
 
       <div className="col-span-1 min-h-80 bg-blue-50 lg:col-span-2">
         <div className="flex items-center justify-center h-full w-full">
-          <MapDisplay latitude={userLocation?.lat ?? null} longitude={userLocation?.lng ?? null} />
+          <MapDisplay
+            latitude={userLocation?.lat ?? null}
+            longitude={userLocation?.lng ?? null}
+          />
         </div>
       </div>
 
