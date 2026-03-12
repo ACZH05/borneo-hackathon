@@ -15,11 +15,17 @@ import {
   TextField,
 } from "@mui/material";
 
+type SubmissionStatus =
+  | { type: "success"; message: string }
+  | { type: "error"; message: string };
+
 export default function ButtonListComponent({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [hazard, setHazard] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus | null>(null);
 
   const getLocation = () =>
     new Promise<{ lat: number; lng: number }>((resolve, reject) => {
@@ -36,6 +42,37 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
       );
     });
 
+  const getRequestErrorMessage = (errorData: unknown) => {
+    if (errorData && typeof errorData === "object" && "error" in errorData) {
+      const message = (errorData as { error?: unknown }).error;
+      if (typeof message === "string" && message.trim()) {
+        return message;
+      }
+    }
+
+    return "SOS signal failed to send. Please try again.";
+  };
+
+  const getClientErrorMessage = (error: unknown) => {
+    if (error && typeof error === "object" && "code" in error) {
+      const code = (error as { code?: unknown }).code;
+
+      if (code === 1) {
+        return "Location access was denied. Please enable GPS permission and try again.";
+      }
+
+      if (code === 2) {
+        return "Unable to determine your location. Please try again in an open area.";
+      }
+
+      if (code === 3) {
+        return "Location request timed out. Please try again.";
+      }
+    }
+
+    return "SOS signal failed to send. Please check your connection and try again.";
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting) {
       return;
@@ -43,16 +80,25 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
 
     if (!userId) {
       console.error("Missing userId for SOS request");
+      setSubmissionStatus({
+        type: "error",
+        message: "Unable to send SOS signal because your session is missing. Please log in again.",
+      });
       return;
     }
 
     if (!hazard) {
       console.error("Hazard type is required for SOS request");
+      setSubmissionStatus({
+        type: "error",
+        message: "Please select a hazard type before sending SOS.",
+      });
       return;
     }
 
     try {
       setIsSubmitting(true);
+      setSubmissionStatus(null);
       const location = await getLocation();
       const payloadDescription = description.trim() || "No description provided";
 
@@ -71,18 +117,39 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
+        const errorData: unknown = await response.json().catch(() => null);
+        const errorMessage = getRequestErrorMessage(errorData);
         console.error("SOS request failed", errorData ?? response.statusText);
+        setSubmissionStatus({
+          type: "error",
+          message: errorMessage,
+        });
         return;
       }
 
-      const { message } = await response.json();
-      console.log(message);
+      const responseData: unknown = await response.json();
+      const successMessage =
+        responseData &&
+        typeof responseData === "object" &&
+        "message" in responseData &&
+        typeof (responseData as { message?: unknown }).message === "string"
+          ? (responseData as { message: string }).message
+          : "SOS signal sent successfully.";
+
+      console.log(successMessage);
       setIsOpen(false);
       setHazard("");
       setDescription("");
+      setSubmissionStatus({
+        type: "success",
+        message: successMessage,
+      });
     } catch (error) {
       console.error("Failed to send SOS request:", error);
+      setSubmissionStatus({
+        type: "error",
+        message: getClientErrorMessage(error),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -98,14 +165,19 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
   ];
 
   return (
-    <div className="flex gap-4 text-surface font-bold">
-      <button
-        onClick={() => setIsOpen(true)}
-        className="flex gap-2 px-8 py-4 bg-priority shadow rounded-full transition hover:-translate-1 cursor-pointer"
-      >
-        <RingVolumeIcon />
-        SOS
-      </button>
+    <div className="text-surface font-bold">
+      <div className="flex gap-4">
+        <button
+          onClick={() => {
+            setIsOpen(true);
+            setSubmissionStatus(null);
+          }}
+          className="flex gap-2 px-8 py-4 bg-priority shadow rounded-full transition hover:-translate-1 cursor-pointer"
+        >
+          <RingVolumeIcon />
+          SOS
+        </button>
+      </div>
 
       <Modal
         open={isOpen}
@@ -159,6 +231,12 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
                 </span>
               </div>
 
+              {submissionStatus?.type === "error" && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                  {submissionStatus.message}
+                </div>
+              )}
+
               <button
                 disabled={isSubmitting || !hazard}
                 className="bg-priority text-white py-4 rounded-xl shadow-2xl cursor-pointer"
@@ -170,6 +248,20 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
           </div>
         </div>
       </Modal>
+
+      {submissionStatus && !isOpen && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`mt-3 rounded-lg border px-4 py-3 text-sm font-medium ${
+            submissionStatus.type === "success"
+              ? "border-green-200 bg-green-50 text-green-700"
+              : "border-red-200 bg-red-50 text-red-700"
+          }`}
+        >
+          {submissionStatus.message}
+        </div>
+      )}
     </div>
   );
 }
