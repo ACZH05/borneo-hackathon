@@ -8,6 +8,7 @@ import AlertItem from "./Alert-Item-List";
 import AlertItemMap from "./Alert-Item-Map";
 import { AlertItemInfo } from "@/app/api/alert/util/types";
 import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
+import Skeleton from "@/app/components/Skeleton";
 
 export default function AlertHeader() {
     const searchParams = useSearchParams();
@@ -17,6 +18,7 @@ export default function AlertHeader() {
     const alertRefs = useRef<Map<string, HTMLDivElement>>(new Map()); // Refs for scrolling to alert cards.
     
     const { alerts, isLoading } = useAlertsData();
+    const skeletonCards = Array.from({ length: 4 });
 
     useEffect(() => {
         const alertId = searchParams.get("alert");
@@ -67,7 +69,20 @@ export default function AlertHeader() {
                 ? ( 
                     <div className="flex flex-col gap-4">
                         {isLoading ? (
-                            <div className="text-center font-bold text-textGrey py-10">Loading active alerts...</div>
+                            skeletonCards.map((_, index) => (
+                                <div
+                                  key={`alert-skeleton-${index}`}
+                                  className="rounded-xl border border-foreground/10 bg-white p-5"
+                                >
+                                  <Skeleton className="h-5 w-40" />
+                                  <Skeleton className="mt-4 h-4 w-64" />
+                                  <Skeleton className="mt-2 h-4 w-48" />
+                                  <div className="mt-4 flex justify-between">
+                                    <Skeleton className="h-9 w-28 rounded-lg" />
+                                    <Skeleton className="h-9 w-36 rounded-lg" />
+                                  </div>
+                                </div>
+                              ))
                         ) : alerts.length === 0 ? (
                             <div className="text-center font-bold text-textGrey py-10">No active alerts at this time.</div>
                         ) : (() => {

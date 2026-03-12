@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase"; 
 import MapPicker from "./components/MapPicker";
+import Skeleton from "@/app/components/Skeleton";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface RescueCard {
@@ -487,9 +488,28 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-10 p-10 max-w-6xl mx-auto">
-        <h1 className="text-5xl md:text-6xl font-extrabold text-foreground tracking-tight">My <span className="text-primary">Profile</span></h1>
-        <div className="flex items-center gap-4 text-textGrey font-medium"><span className="w-6 h-6 border-2 border-textGrey/30 border-t-primary rounded-full animate-spin" />Securely loading your data...</div>
+      <div className="mx-auto mb-20 flex max-w-6xl flex-col gap-10 p-6 md:p-10">
+        <div className="rounded-3xl border border-foreground/5 bg-surface p-8 shadow-sm">
+          <Skeleton className="h-12 w-72" />
+          <Skeleton className="mt-3 h-6 w-96" />
+        </div>
+        <div className="flex flex-col gap-8 lg:flex-row">
+          <div className="lg:w-80 shrink-0 flex flex-col gap-6">
+            <div className="bg-surface border border-foreground/10 shadow-sm rounded-3xl p-8">
+              <div className="flex flex-col items-center gap-6">
+                <Skeleton className="h-28 w-28 rounded-full" />
+                <Skeleton className="h-8 w-40" />
+                <Skeleton className="h-6 w-28 rounded-full" />
+                <Skeleton className="h-24 w-full rounded-2xl" />
+              </div>
+            </div>
+            <Skeleton className="h-72 w-full rounded-3xl border border-foreground/10" />
+          </div>
+          <div className="flex-1 space-y-6">
+            <Skeleton className="h-72 w-full rounded-3xl border border-foreground/10" />
+            <Skeleton className="h-96 w-full rounded-3xl border border-foreground/10" />
+          </div>
+        </div>
       </div>
     );
   }
