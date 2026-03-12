@@ -14,11 +14,13 @@ type ChecklistBodyProps = {
     userId: string | null;
     selectedPlan: EmergencyPlan | null;
     isPersisting: boolean;
+    isDeleting: boolean;
     hasPendingChanges: boolean;
     onOpenAdd: () => void;
     onPlanGenerated: (newPlan: EmergencyPlan) => void;
     onChecklistChange: (checklist: ChecklistItem[]) => void;
     onSave: () => Promise<void>;
+    onDelete: () => Promise<void>;
 };
 
 export default function ChecklistBody({
@@ -26,11 +28,13 @@ export default function ChecklistBody({
     userId,
     selectedPlan,
     isPersisting,
+    isDeleting,
     hasPendingChanges,
     onOpenAdd,
     onPlanGenerated,
     onChecklistChange,
     onSave,
+    onDelete,
 }: ChecklistBodyProps) {
     const renderBody = () => {
         if (activeView === "initial") {
@@ -45,9 +49,11 @@ export default function ChecklistBody({
             <ChecklistListViewComponent
                 plan={selectedPlan}
                 isPersisting={isPersisting}
+                isDeleting={isDeleting}
                 hasPendingChanges={hasPendingChanges}
                 onChecklistChange={onChecklistChange}
                 onSave={onSave}
+                onDelete={onDelete}
             />
         );
     };

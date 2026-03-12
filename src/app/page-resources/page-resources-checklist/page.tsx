@@ -39,6 +39,7 @@ export default function ResourcesChecklistPage() {
   const [selectedPlan, setSelectedPlan] = useState<EmergencyPlan | null>(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isPersisting, setIsPersisting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const hasPendingChanges = useMemo(() => {
     if (!selectedPlan) return false;
@@ -143,6 +144,27 @@ export default function ResourcesChecklistPage() {
     setSelectedPlan({ ...selectedPlan, checklist });
   };
 
+  const deleteSelectedPlan = useCallback(async () => {
+    if (!selectedPlan) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/checklist/${selectedPlan.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) return;
+
+      setHistory((currentHistory) =>
+        currentHistory.filter((plan) => plan.id !== selectedPlan.id)
+      );
+      setSelectedPlan(null);
+      setActiveView("initial");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [selectedPlan]);
+
   if (isLoading)   return <div className="flex items-center justify-center h-full">Loading...</div>;
   if (!isLoggedIn) return <div className="flex items-center justify-center h-full">Please log in to access the checklist.</div>;
 
@@ -162,11 +184,13 @@ export default function ResourcesChecklistPage() {
         userId={userId}
         selectedPlan={selectedPlan}
         isPersisting={isPersisting}
+        isDeleting={isDeleting}
         hasPendingChanges={hasPendingChanges}
         onOpenAdd={moveToAdd}
         onPlanGenerated={onPlanGenerated}
         onChecklistChange={onChecklistChange}
         onSave={persistSelectedPlan}
+        onDelete={deleteSelectedPlan}
       />
     </div>
   );
