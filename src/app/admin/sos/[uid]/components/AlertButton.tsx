@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import PostAddIcon from "@mui/icons-material/PostAdd";
-import { FormControl, Input, InputLabel, Modal } from "@mui/material";
+import { Modal, TextField } from "@mui/material";
 import { useUserContext } from "@/app/provider/UserIdProvider";
 
 type ReportType = {
@@ -87,56 +87,77 @@ function AlertButton({ uid }: { uid: string }) {
     });
   };
   return (
-    <div className="">
+    <div>
       <button
         onClick={handleDraft}
-        className="flex items-center gap-2 px-6 py-2 text-sm font-black bg-priority text-white rounded-xl cursor-pointer"
+        className="flex cursor-pointer items-center gap-2 rounded-xl bg-priority px-6 py-2 text-sm font-black text-white transition hover:opacity-90"
       >
         <PostAddIcon />
         Deploy Alert
       </button>
 
       <Modal open={isOpen} onClose={() => setIsOpen(false)}>
-        <div className="bg-white w-1/2 absolute top-1/2 left-1/2 -translate-1/2 p-6 rounded-2xl">
-          <div className="flex flex-col gap-4">
-            <span>Draft</span>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <FormControl>
-                <InputLabel>Title</InputLabel>
-                <Input
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-textGrey/15 bg-white shadow-2xl">
+            <div className="border-b border-textGrey/10 px-6 py-4">
+              <p className="text-lg font-bold text-textBlack">Alert Draft</p>
+              <p className="text-xs text-textGrey">
+                Review and edit the generated public alert before posting.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <TextField
+                  label="Title"
                   onChange={(e) => setTitle(e.target.value)}
                   value={title}
+                  size="small"
+                  fullWidth
                 />
-              </FormControl>
-
-              <FormControl>
-                <InputLabel>Severity</InputLabel>
-                <Input
+                <TextField
+                  label="Severity"
                   onChange={(e) => setSeverity(e.target.value)}
                   value={severity}
+                  size="small"
+                  fullWidth
                 />
-              </FormControl>
-
-              <FormControl>
-                <InputLabel>Hazard Type</InputLabel>
-                <Input
+                <TextField
+                  label="Hazard Type"
                   onChange={(e) => setHazardType(e.target.value)}
                   value={hazardType}
+                  size="small"
+                  fullWidth
                 />
-              </FormControl>
+                <div className="flex items-center rounded-xl bg-primary/5 px-3 py-2 text-xs text-textGrey">
+                  Coordinates: {lat || "-"}, {lng || "-"}
+                </div>
+              </div>
 
-              <FormControl>
-                <InputLabel>Body</InputLabel>
-                <Input
-                  multiline
-                  onChange={(e) => setBody(e.target.value)}
-                  value={body}
-                />
-              </FormControl>
+              <TextField
+                label="Body"
+                multiline
+                minRows={6}
+                onChange={(e) => setBody(e.target.value)}
+                value={body}
+                fullWidth
+              />
 
-              <button className="bg-primary text-white py-4 rounded-xl shadow-2xl cursor-pointer">
-                POST
-              </button>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="cursor-pointer rounded-xl border border-textGrey/30 px-5 py-2 text-sm font-semibold text-textGrey transition hover:bg-textGrey/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-xl bg-primary px-6 py-2 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+                >
+                  Post Alert
+                </button>
+              </div>
             </form>
           </div>
         </div>

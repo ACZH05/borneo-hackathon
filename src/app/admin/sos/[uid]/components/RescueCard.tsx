@@ -1,28 +1,65 @@
-import React from "react";
+"use client";
 
-function RescueCard() {
+type RescueCardProps = {
+  name: string;
+  bloodType: string;
+  allergies: string;
+  medicalConditions: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  homeAddress: string;
+};
+
+type CardFieldProps = {
+  label: string;
+  value: string;
+  className?: string;
+};
+
+function CardField({ label, value, className = "" }: CardFieldProps) {
   return (
-    <div className="grid grid-cols-3 grid-rows-3 gap-4">
-      <div className="flex items-center col-span-3">Ahmad Yusof</div>
-      <div className="flex flex-col text-xs gap-1 row-start-2">
-        <span>BLOOD TYPE</span>
-        <span>O Positive (O+)</span>
+    <div className={`min-w-0 ${className}`}>
+      <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm leading-5 text-textBlack">{value}</p>
+    </div>
+  );
+}
+
+function RescueCard({
+  name,
+  bloodType,
+  allergies,
+  medicalConditions,
+  emergencyContactName,
+  emergencyContactPhone,
+  homeAddress,
+}: RescueCardProps) {
+  const safeName = name || "Unknown User";
+  const safeBloodType = bloodType || "N/A";
+  const safeMedicalConditions = medicalConditions || "N/A";
+  const safeHomeAddress = homeAddress || "N/A";
+  const safeEmergencyContact = emergencyContactName || "N/A";
+  const safeEmergencyContactPhone = emergencyContactPhone || "N/A";
+  const safeAllergies = allergies || "N/A";
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 border-b border-textGrey/15 pb-3">
+        <p className="break-words text-2xl font-bold text-textBlack">{safeName}</p>
       </div>
-      <div className="flex flex-col text-xs gap-1 row-start-2">
-        <span>MEDICAL CONDITION</span>
-        <span>Hypertension, Type 2 Diabetes</span>
-      </div>
-      <div className="flex flex-col text-xs gap-1">
-        <span>HOME ADRRESS</span>
-        <span>Villa 12, Lake View</span>
-      </div>
-      <div className="flex flex-col text-xs gap-1 row-start-3">
-        <span>CONTACT PHONE</span>
-        <span>+60 12-345 6789</span>
-      </div>
-      <div className="flex flex-col text-xs gap-1 col-span-2 row-start-3">
-        <span>EMERGENCY CONTACT</span>
-        <span>Sarah (sister) +60 12-345 6789</span>
+      <div className="mt-3 grid min-h-0 flex-1 grid-cols-2 gap-x-4 gap-y-3 overflow-y-auto pr-1">
+        <CardField label="BLOOD TYPE" value={safeBloodType} />
+        <CardField label="MEDICAL CONDITION" value={safeMedicalConditions} />
+        <CardField label="HOME ADDRESS" value={safeHomeAddress} className="col-span-2" />
+        <CardField label="ALLERGIES" value={safeAllergies} />
+        <CardField label="EMERGENCY CONTACT" value={safeEmergencyContact} />
+        <CardField
+          label="EMERGENCY CONTACT PHONE"
+          value={safeEmergencyContactPhone}
+          className="col-span-2"
+        />
       </div>
     </div>
   );

@@ -10,8 +10,8 @@ export default async function SOSLayout({
 }) {
   const { uid } = await params;
   return (
-    <div className="">
-      <div className="flex justify-between items-end border-b-2 pb-4 border-textGrey/10 p-6">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex shrink-0 items-end justify-between border-b-2 border-textGrey/10 p-6 pb-4">
         <span className="text-2xl font-black">Triage Details</span>
         <div className="flex gap-4">
           <AlertButton uid={uid} />
@@ -21,7 +21,7 @@ export default async function SOSLayout({
           </button>
         </div>
       </div>
-      {children}
+      <div className="flex-1 min-h-0">{children}</div>
     </div>
   );
 }
