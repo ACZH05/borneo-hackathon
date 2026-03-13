@@ -43,7 +43,7 @@ export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => voi
                 </div>
                 
                 {/* Map Content */}
-                <div className="pointer-events-none w-full h-full">
+                <div className="flex items-center justify-center pointer-events-none w-full h-full">
                     <MapDisplay latitude={item.lat} longitude={item.lng} />
                 </div>
             </div>
