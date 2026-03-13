@@ -8,7 +8,7 @@ type ChecklistListAddProps = {
 	onPlanGenerated: (newPlan: EmergencyPlan) => void;
 };
 
-const PRESET_HAZARDS = ["Flood", "Landslide", "Wildfire"];
+const PRESET_HAZARDS = ["Flood", "Landslide", "Tidal"];
 const GENERATING_PROMPTS = [
 	"Analyzing your household details...",
 	"Building a hazard-specific supply list...",
