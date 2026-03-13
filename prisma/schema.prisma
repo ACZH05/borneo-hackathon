@@ -74,6 +74,8 @@ model Alert {
   lat          Float?   
   lng          Float?   
   
+  status       String   @default("published") // Options: draft | published
+  
   createdAt    DateTime @default(now())
 }
 
