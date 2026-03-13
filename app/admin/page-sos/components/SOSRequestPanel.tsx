@@ -11,6 +11,7 @@ export type ReportSummary = {
   severity: string | null;
   hazardType: string;
   location: string;
+  createdAt: string;
 };
 
 const SEVERITY_LEVELS: SeverityLevel[] = [
@@ -140,6 +141,7 @@ function SOSRequestPanel({ reports }: { reports: ReportSummary[] }) {
               severity={report.normalizedSeverity ?? "Unknown"}
               hazardType={report.hazardType}
               location={report.location}
+              createdAt={report.createdAt}
             />
           ))
         ) : (

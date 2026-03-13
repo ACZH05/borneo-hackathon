@@ -6,6 +6,7 @@ interface detailsProps {
   severity: string;
   hazardType: string;
   location: string;
+  createdAt: string;
 }
 
 const getSeverityClass = (severity: string) => {
@@ -24,8 +25,29 @@ const getSeverityClass = (severity: string) => {
   }
 };
 
-function RequestTab({ uid, severity, hazardType, location }: detailsProps) {
+const formatCreatedTime = (createdAt: string) => {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown time";
+  }
+
+  return new Intl.DateTimeFormat("en-MY", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+};
+
+function RequestTab({
+  uid,
+  severity,
+  hazardType,
+  location,
+  createdAt,
+}: detailsProps) {
   const severityClass = getSeverityClass(severity);
+  const createdTime = formatCreatedTime(createdAt);
 
   return (
     <Link
@@ -34,7 +56,7 @@ function RequestTab({ uid, severity, hazardType, location }: detailsProps) {
     >
       <div className="flex justify-between text-xs">
         <span className={`${severityClass} font-black`}>{severity}</span>
-        <span className="">2m ago</span>
+        <span>{createdTime}</span>
       </div>
       <div className="text-base font-black">{hazardType}</div>
       <div className="text-xs">{location}</div>

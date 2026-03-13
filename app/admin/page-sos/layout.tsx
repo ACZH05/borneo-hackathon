@@ -4,6 +4,7 @@ type Report = {
   id: string;
   address: string | null;
   hazardType: string | null;
+  createdAt: string;
   aiTriage: { severity?: string | null } | null;
 };
 
@@ -24,6 +25,7 @@ export default async function SOSLayout({
     severity: report?.aiTriage?.severity ?? null,
     hazardType: report.hazardType ?? "Unknown hazard",
     location: report.address ?? "Unknown location",
+    createdAt: report.createdAt,
   }));
 
   return (
