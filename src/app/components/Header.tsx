@@ -44,7 +44,6 @@ const residentNavLinks: NavLink[] = [
 
 const adminNavLinks: NavLink[] = [
   { name: "SOS", href: "/admin/sos" },
-  { name: "Alert", href: "/admin/alert" },
   { name: "Profile", href: "/admin/profile" },
 ];
 
@@ -93,12 +92,6 @@ const adminSearchItems: SearchItem[] = [
     href: "/admin/sos",
     description: "Monitor and respond to SOS requests.",
     keywords: ["rescue", "emergency", "requests", "dashboard"],
-  },
-  {
-    name: "Alert Management",
-    href: "/admin/alert",
-    description: "Create and manage community alerts.",
-    keywords: ["warning", "broadcast", "incident", "alert"],
   },
   {
     name: "Admin Profile",
