@@ -2,6 +2,10 @@
 
 BorNEO AI is a role-based disaster preparedness and emergency response platform for Borneo communities. The app separates resident and administrator workflows so each user sees only the tools they need during preparedness, alert monitoring, and emergency response.
 
+- Website URL: https://borneo-hackathon-web-beige.vercel.app/
+- Demo Video URL: https://youtu.be/FFtnrWynUGQ
+- Final Report URL: https://drive.google.com/file/d/1MfYfEInGYYWXxgn2inuS9eN2ZNnaedgs/view?usp=sharing
+
 ## What The App Does
 
 - Helps residents prepare with AI-powered simulations and personalized emergency checklists.
