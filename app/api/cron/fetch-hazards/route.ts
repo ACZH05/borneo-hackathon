@@ -24,53 +24,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'No Admin user found to assign alerts to.' }, { status: 400 });
     }
 
-    // 3. MOCK DATA: 5 Fake Alerts with EXACT Region Codes!
-    const weatherData = {
-      alerts: {
-        alert: [
-          {
-            event: "Severe Flood Warning",
-            desc: "Heavy monsoon rains have caused the Skudai River to overflow. Evacuate immediately.",
-            severity: "Priority",
-            lat: 1.4927,
-            lon: 103.7414,
-            regionCode: "MY-01" // Johor
-          },
-          {
-            event: "Landslide Alert",
-            desc: "Soil erosion detected near Bukit Bendera due to continuous rain. Avoid the area.",
-            severity: "Warning",
-            lat: 5.4141,
-            lon: 100.3288,
-            regionCode: "MY-07" // Pulau Pinang
-          },
-          {
-            event: "Flash Flood Watch",
-            desc: "Rapid water rise reported in the city center near Masjid Jamek. Traffic is at a standstill.",
-            severity: "Warning",
-            lat: 3.1390,
-            lon: 101.6869,
-            regionCode: "MY-14" // Kuala Lumpur
-          },
-          {
-            event: "Strong Winds & Rough Seas",
-            desc: "Wind speeds exceeding 60km/h expected along the east coast. Small boats should not go out to sea.",
-            severity: "Monitor",
-            lat: 3.8126,
-            lon: 103.3256,
-            regionCode: "MY-06" // Pahang
-          },
-          {
-            event: "Unhealthy Air Quality",
-            desc: "API levels have crossed the unhealthy threshold due to local hotspots. Wear masks outdoors.",
-            severity: "Monitor",
-            lat: 1.5535,
-            lon: 110.3593,
-            regionCode: "MY-13" // Sarawak
-          }
-        ]
-      }
-    };
+    // 3. FETCH LIVE DATA: Real WeatherAPI connection
+    const apiKey = process.env.WEATHER_API_KEY;
+    const weatherRes = await fetch(`https://api.weatherapi.com/v1/alerts.json?key=${apiKey}&q=Malaysia`);
+    const weatherData = await weatherRes.json();
+
+    // Get the exact coordinates from the live API response
+    const exactLat = weatherData.location?.lat || null; 
+    const exactLng = weatherData.location?.lon || null;
 
     // 4. PROCESS ALERTS
     if (weatherData.alerts && weatherData.alerts.alert.length > 0) {
@@ -78,7 +39,7 @@ export async function GET(request: Request) {
       let newAlertCount = 0;
 
       for (const alertData of weatherData.alerts.alert) {
-        // Prevent saving duplicates
+        // Prevent saving duplicates by checking the title
         const existingAlert = await prisma.alert.findFirst({
           where: { title: alertData.event }
         });
@@ -87,24 +48,24 @@ export async function GET(request: Request) {
           await prisma.alert.create({
             data: {
               createdBy: systemAdmin.id,
-              regionCode: alertData.regionCode, // 🚨 Now using the specific Region Code!
+              regionCode: "MY-ALL", // Defaulting to ALL for live country-wide data
               hazardType: "weather",
-              severity: alertData.severity, 
+              severity: alertData.severity || "warning", 
               title: alertData.event,
               body: alertData.desc,
               status: "draft",
-              lat: alertData.lat, 
-              lng: alertData.lon, 
+              lat: exactLat, 
+              lng: exactLng, 
             }
           });
           newAlertCount++;
         }
       }
 
-      return NextResponse.json({ success: true, message: `Ingested ${newAlertCount} new Malaysian map test alerts.` });
+      return NextResponse.json({ success: true, message: `Ingested ${newAlertCount} new live weather drafts.` });
     }
 
-    return NextResponse.json({ success: true, message: "No active weather alerts at this time." });
+    return NextResponse.json({ success: true, message: "No active live weather alerts at this time." });
 
   } catch (error) {
     console.error("Cron Ingestion Error:", error);
