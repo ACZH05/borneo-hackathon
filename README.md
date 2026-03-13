@@ -6,6 +6,10 @@ BorNEO AI is a role-based disaster preparedness and emergency response platform 
 - Demo Video URL: https://youtu.be/FFtnrWynUGQ
 - Final Report URL: https://drive.google.com/file/d/1MfYfEInGYYWXxgn2inuS9eN2ZNnaedgs/view?usp=sharing
 
+<br />
+
+- More Details Information (Setup Instructions / Login Steps): https://github.com/ACZH05/borneo-hackathon/tree/main/doc
+
 ## What The App Does
 
 - Helps residents prepare with AI-powered simulations and personalized emergency checklists.
