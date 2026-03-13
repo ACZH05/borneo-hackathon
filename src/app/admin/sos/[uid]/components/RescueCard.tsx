@@ -22,7 +22,7 @@ function CardField({ label, value, className = "" }: CardFieldProps) {
       <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
         {label}
       </p>
-      <p className="mt-1 break-words text-sm leading-5 text-textBlack">{value}</p>
+      <p className="mt-1 wrap-break-word text-sm leading-5 text-textBlack">{value}</p>
     </div>
   );
 }
@@ -47,7 +47,7 @@ function RescueCard({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="shrink-0 border-b border-textGrey/15 pb-3">
-        <p className="break-words text-2xl font-bold text-textBlack">{safeName}</p>
+        <p className="wrap-break-word text-2xl font-bold text-textBlack">{safeName}</p>
       </div>
       <div className="mt-3 grid min-h-0 flex-1 grid-cols-2 gap-x-4 gap-y-3 overflow-y-auto pr-1">
         <CardField label="BLOOD TYPE" value={safeBloodType} />
