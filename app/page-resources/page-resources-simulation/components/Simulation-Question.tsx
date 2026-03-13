@@ -85,7 +85,7 @@ export default function SimulationQuestion({ hazardType, setIsSimulating }: Simu
         return (
             <div className="flex flex-col items-center justify-center p-20 gap-4 h-full">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
-                <p className="text-gray-600 font-semibold">Generating Simulation Scenario...</p>
+                <p className="text-gray-600 font-semibold text-center">Generating Simulation Scenario...</p>
             </div>
         );
     }
@@ -95,7 +95,7 @@ export default function SimulationQuestion({ hazardType, setIsSimulating }: Simu
         return (
             <div className="flex flex-col items-center justify-center p-20 gap-4 h-full">
                 <span className="material-symbols-outlined text-red-500" style={{ fontSize: 64 }}>error</span>
-                <p className="text-red-600 font-semibold">{error}</p>
+                <p className="text-red-600 font-semibold text-center">{error}</p>
                 <button 
                     onClick={handleRestart}
                     className="py-2 px-6 bg-primary text-white rounded-full font-semibold active:scale-95 transition-transform"

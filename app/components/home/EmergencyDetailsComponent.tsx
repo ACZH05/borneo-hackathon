@@ -79,7 +79,7 @@ export default function EmergencyDetailsComponent({
         className="flex items-center justify-center p-4"
       >
         <div
-          className="w-full max-w-3xl overflow-hidden rounded-3xl border border-textGrey/15 bg-white shadow-2xl"
+          className="flex w-full max-w-3xl max-h-[90vh] flex-col overflow-hidden rounded-3xl border border-textGrey/15 bg-white shadow-2xl"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="flex items-start justify-between border-b border-textGrey/15 px-5 py-4 sm:px-6">
@@ -104,7 +104,7 @@ export default function EmergencyDetailsComponent({
             </button>
           </div>
 
-          <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-start">
+          <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5 sm:p-6 lg:flex-row lg:items-start">
             <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-textGrey/10 bg-background p-4">
                 <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
