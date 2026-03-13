@@ -6,7 +6,7 @@ import EmergencyDetailsComponent from "./components/home/EmergencyDetailsCompone
 import LatestAlert from "./components/home/LatestAlert";
 import PlatformStatus from "./components/home/PlatformStatus";
 import TrustedContacts from "./components/home/TrustedContacts";
-import MapDisplay from "./api/map/route";
+import MapDisplay from "./api/map/MapDisplay";
 import { requestUserLocation } from "@/app/lib/permission/location";
 import { useUserContext } from "./provider/UserIdProvider";
 

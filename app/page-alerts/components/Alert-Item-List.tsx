@@ -3,7 +3,7 @@
 import { filterOptions } from "@/app/page-alerts/components/Alert-Filter";
 import { AlertItemInfo } from "@/app/api/alert/util/types";
 import { formatAlertBody } from "@/app/api/alert/util/formatAlertBody";
-import MapDisplay from "@/app/api/map/route";
+import MapDisplay from "@/app/api/map/MapDisplay";
 
 export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => void }) {
     // --- Color Scheme Based on Priority ---
