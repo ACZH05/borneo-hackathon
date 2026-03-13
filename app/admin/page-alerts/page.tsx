@@ -14,6 +14,31 @@ type Alert = {
   status: string;
 };
 
+const getSeverityStyle = (severity: string) => {
+  switch (severity.toLowerCase()) {
+    case "priority":
+      return {
+        textColor: "text-priority",
+        backgroundColor: "bg-priority/10",
+      };
+    case "warning":
+      return {
+        textColor: "text-warning",
+        backgroundColor: "bg-warning/10",
+      };
+    case "moderate":
+      return {
+        textColor: "text-monitor",
+        backgroundColor: "bg-monitor/10",
+      };
+    default:
+      return {
+        textColor: "text-textGrey",
+        backgroundColor: "bg-textGrey/10",
+      };
+  }
+};
+
 export default function AdminAlertsPage() {
   const [drafts, setDrafts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,45 +148,57 @@ export default function AdminAlertsPage() {
       )}
 
       <div className="space-y-4">
-        {drafts.map((alert) => (
-          <div 
-            key={alert.id} 
-            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  {alert.severity}
-                </span>
-                <h2 className="text-xl font-black">{alert.title}</h2>
-              </div>
-              <p className="text-textGrey leading-relaxed">{alert.body}</p>
-            </div>
+        {drafts.map((alert) => {
+          const severityStyle = getSeverityStyle(alert.severity);
 
-            {/* NEW: Dynamic Button State */}
-            <button 
-              onClick={() => handlePublish(alert.id)}
-              disabled={processingId === alert.id}
-              className={`flex items-center gap-2 font-semibold py-3 px-6 rounded-xl transition-colors whitespace-nowrap cursor-pointer ${
-                processingId === alert.id 
-                  ? "bg-gray-400 text-white cursor-not-allowed" 
-                  : "bg-black hover:bg-gray-800 text-white"
-              }`}
+          return (
+            <div
+              key={alert.id}
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-md transition-shadow"
             >
-              {processingId === alert.id ? (
-                <>
-                  <AutorenewIcon fontSize="small" className="animate-spin" />
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <CheckCircleOutlineIcon fontSize="small" />
-                  Approve & Publish
-                </>
-              )}
-            </button>
-          </div>
-        ))}
+              <div className="flex-1">
+                <div className="mb-2 flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold uppercase ${severityStyle.backgroundColor} ${severityStyle.textColor}`}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 12 }}
+                    >
+                      warning
+                    </span>
+                    <span>{alert.severity}</span>
+                  </span>
+                  <h2 className="text-xl font-black">{alert.title}</h2>
+                </div>
+                <p className="text-textGrey leading-relaxed">{alert.body}</p>
+              </div>
+
+              {/* NEW: Dynamic Button State */}
+              <button
+                onClick={() => handlePublish(alert.id)}
+                disabled={processingId === alert.id}
+                className={`flex items-center gap-2 font-semibold py-3 px-6 rounded-xl transition-colors whitespace-nowrap cursor-pointer ${
+                  processingId === alert.id
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-black hover:bg-gray-800 text-white"
+                }`}
+              >
+                {processingId === alert.id ? (
+                  <>
+                    <AutorenewIcon fontSize="small" className="animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircleOutlineIcon fontSize="small" />
+                    Approve & Publish
+                  </>
+                )}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
