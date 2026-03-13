@@ -22,6 +22,9 @@ type ReportType = {
 function AlertButton({ uid }: { uid: string }) {
   const [report, setReport] = useState<ReportType>();
   const [isOpen, setIsOpen] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState("");
   const [hazardType, setHazardType] = useState("");
@@ -72,22 +75,62 @@ function AlertButton({ uid }: { uid: string }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await fetch("/api/alert", {
-      method: "POST",
-      body: JSON.stringify({
-        userId,
-        regionCode,
-        hazardType,
-        severity,
-        title,
-        body,
-        lat,
-        lng,
-      }),
-    });
+    setIsPosting(true);
+    setSubmitError("");
+
+    try {
+      const response = await fetch("/api/alert", {
+        method: "POST",
+        body: JSON.stringify({
+          userId,
+          regionCode,
+          hazardType,
+          severity,
+          title,
+          body,
+          lat,
+          lng,
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to post alert.");
+      }
+
+      setSuccessMessage("Alert posted successfully.");
+      setIsOpen(false);
+      window.setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to post alert.",
+      );
+    } finally {
+      setIsPosting(false);
+    }
   };
   return (
     <div>
+      {successMessage && (
+        <div className="fixed bottom-10 right-10 z-50 flex items-center gap-3 rounded-xl border-l-4 border-green-500 bg-white px-6 py-4 text-sm font-bold text-textBlack shadow-2xl animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-600">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          {successMessage}
+        </div>
+      )}
+
       <button
         onClick={handleDraft}
         className="flex cursor-pointer items-center gap-2 rounded-xl bg-priority px-6 py-2 text-sm font-black text-white transition hover:opacity-90"
@@ -143,19 +186,34 @@ function AlertButton({ uid }: { uid: string }) {
                 fullWidth
               />
 
+              {submitError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                  {submitError}
+                </div>
+              )}
+
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
+                  disabled={isPosting}
                   className="cursor-pointer rounded-xl border border-textGrey/30 px-5 py-2 text-sm font-semibold text-textGrey transition hover:bg-textGrey/5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="cursor-pointer rounded-xl bg-primary px-6 py-2 text-sm font-bold text-white shadow-md transition hover:opacity-90"
+                  disabled={isPosting}
+                  className="flex min-w-32 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2 text-sm font-bold text-white shadow-md transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Post Alert
+                  {isPosting ? (
+                    <>
+                      <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    "Post Alert"
+                  )}
                 </button>
               </div>
             </form>
