@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AuthStatus } from "@/app/api/auth/verification/route";
+import { AuthStatus } from "@/api/auth/verification/route";
 import ChecklistBody from "./components/Checklist-Body";
 import ChecklistDrawer from "./components/Checklist-Drawer";
 import { BodyView, ChecklistItem, EmergencyPlan } from "./components/types";

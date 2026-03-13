@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect,  useState } from "react";
-import { requestUserLocation } from "@/app/api/permission/route";
-import { supabase } from "@/app/lib/supabase";
+import { requestUserLocation } from "@/lib/permission/location";
+import { supabase } from "@/lib/database/supabase";
 
 // --- Login Status Listener ---
 // Once the user is redirected back from the magic link, this component will detect the token in the URL, store it and sync the user info to our database.

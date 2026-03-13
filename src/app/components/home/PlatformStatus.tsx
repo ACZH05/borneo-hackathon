@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
+import { useAlertsData } from "@/api/alert/util/useAlertsData";
 
 export default function PlatformStatus() {
     const { stats } = useAlertsData();

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 import { Modal, TextField } from "@mui/material";
-import { useUserContext } from "@/app/provider/UserIdProvider";
+import { useUserContext } from "@/provider/UserIdProvider";
 
 type ReportType = {
   id: string;

@@ -6,8 +6,8 @@ import AlertMode from "./Alert-Mode";
 import AlertFilter from "./Alert-Filter";
 import AlertItem from "./Alert-Item-List";
 import AlertItemMap from "./Alert-Item-Map";
-import { AlertItemInfo } from "@/app/api/alert/util/types";
-import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
+import { AlertItemInfo } from "@/api/alert/util/types";
+import { useAlertsData } from "@/api/alert/util/useAlertsData";
 import Skeleton from "@/app/components/Skeleton";
 
 export default function AlertHeader() {

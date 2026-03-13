@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { JSX, useEffect, useMemo, useState } from "react";
-import { AuthStatus, Logout } from "@/app/api/auth/verification/route";
+import { AuthStatus, Logout } from "@/api/auth/verification/route";
 import AuthWindow from "@/app/components/Auth-Window";
-import { useUserContext } from "../provider/UserIdProvider";
+import { useUserContext } from "../../provider/UserIdProvider";
 
 type NavSubLink = {
   name: string;

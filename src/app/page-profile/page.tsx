@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase"; 
+import { supabase } from "@/lib/database/supabase"; 
 import MapPicker from "./components/MapPicker";
 import Skeleton from "@/app/components/Skeleton";
 

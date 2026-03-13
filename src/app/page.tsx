@@ -6,9 +6,9 @@ import EmergencyDetailsComponent from "./components/home/EmergencyDetailsCompone
 import LatestAlert from "./components/home/LatestAlert";
 import PlatformStatus from "./components/home/PlatformStatus";
 import TrustedContacts from "./components/home/TrustedContacts";
-import MapDisplay from "./api/map/route";
-import { requestUserLocation } from "@/app/api/permission/route";
-import { useUserContext } from "./provider/UserIdProvider";
+import MapDisplay from "../api/map/route";
+import { requestUserLocation } from "@/lib/permission/location";
+import { useUserContext } from "../provider/UserIdProvider";
 
 type RescueCardData = {
   bloodType?: string;

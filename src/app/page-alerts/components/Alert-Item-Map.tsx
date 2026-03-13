@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
-import { AlertItemInfo } from "@/app/api/alert/util/types";
+import { AlertItemInfo } from "@/api/alert/util/types";
 import { filterOptions } from "./Alert-Filter";
-import { requestUserLocation } from "@/app/api/permission/route";
+import { requestUserLocation } from "@/lib/permission/location";
 
 interface AlertItemMapProps {
     alerts: AlertItemInfo[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertItemInfo, AlertApiResponse, AlertStats } from "@/app/api/alert/util/types";
+import { AlertItemInfo, AlertApiResponse, AlertStats } from "@/api/alert/util/types";
 
 const ALERT_CACHE_TTL_MS = 30_000;
 

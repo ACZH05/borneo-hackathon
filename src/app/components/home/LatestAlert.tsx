@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
-import { AlertItemInfo } from "@/app/api/alert/util/types";
-import { formatAlertBody } from "@/app/api/alert/util/formatAlertBody";
+import { AlertItemInfo } from "@/api/alert/util/types";
+import { formatAlertBody } from "@/api/alert/util/formatAlertBody";
 import { filterOptions } from "@/app/page-alerts/components/Alert-Filter";
-import MapDisplay from "@/app/api/map/route";
-import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
+import MapDisplay from "@/api/map/route";
+import { useAlertsData } from "@/api/alert/util/useAlertsData";
 
 // --- Severity border colour for featured card ---
 const borderColor: Record<string, string> = {
