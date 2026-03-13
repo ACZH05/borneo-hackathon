@@ -1,7 +1,7 @@
 "use client";
 
 import { JSX, useState } from "react";
-import { Login } from "@/app/api/auth/verification/route";
+import { Login } from "@/app/api/auth/verification/authUtils";
 
 interface AuthWindowProps {
   isOpen: boolean;

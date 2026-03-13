@@ -1,5 +1,5 @@
 import "./globals.css";
-import AuthListener from "@/app/api/auth/verification/route";
+import AuthListener from "@/app/api/auth/verification/authUtils";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import UserIdProvider from "./provider/UserIdProvider";
