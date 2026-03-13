@@ -49,7 +49,7 @@ export async function GET(request: Request) {
             data: {
               createdBy: systemAdmin.id,
               regionCode: "MY-ALL", // Defaulting to ALL for live country-wide data
-              hazardType: "weather",
+              hazardType: "other",
               severity: alertData.severity || "warning", 
               title: alertData.event,
               body: alertData.desc,
