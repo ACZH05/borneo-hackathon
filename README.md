@@ -258,7 +258,7 @@ For hackathon demos or stakeholder reviews, this sequence shows the product well
 ## Repository Structure
 
 ```text
-src/app/
+app/
   admin/                  admin SOS workflows
   api/                    server route handlers
   components/             shared UI
