@@ -18,11 +18,15 @@ type CardFieldProps = {
 
 function CardField({ label, value, className = "" }: CardFieldProps) {
   return (
-    <div className={`min-w-0 ${className}`}>
+    <div
+      className={`min-w-0 rounded-2xl bg-textGrey/8 px-4 py-3 ${className}`}
+    >
       <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
         {label}
       </p>
-      <p className="mt-1 wrap-break-word text-sm leading-5 text-textBlack">{value}</p>
+      <p className="mt-1 wrap-break-word text-sm leading-5 text-textBlack">
+        {value}
+      </p>
     </div>
   );
 }
