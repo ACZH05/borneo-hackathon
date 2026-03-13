@@ -22,8 +22,10 @@ type ReportType = {
 function AlertButton({ uid }: { uid: string }) {
   const [report, setReport] = useState<ReportType>();
   const [isOpen, setIsOpen] = useState(false);
+  const [isDraftLoading, setIsDraftLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [draftError, setDraftError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState("");
@@ -59,18 +61,41 @@ function AlertButton({ uid }: { uid: string }) {
       }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.error || "Failed to generate alert draft.");
+    }
+
     const data = await response.json();
     const draft = data?.draft;
+    if (!data?.success || !draft) {
+      throw new Error(data?.error || "Failed to generate alert draft.");
+    }
+
     return draft;
   };
 
   const handleDraft = async () => {
     setIsOpen(true);
-    const draftAlert = await postAlertDraft();
-    setTitle(draftAlert?.title);
-    setSeverity(draftAlert?.severity);
-    setHazardType(draftAlert?.hazardType);
-    setBody(draftAlert?.body);
+    setIsDraftLoading(true);
+    setDraftError("");
+    setSubmitError("");
+
+    try {
+      const draftAlert = await postAlertDraft();
+      setTitle(draftAlert?.title || "");
+      setSeverity(draftAlert?.severity || "");
+      setHazardType(draftAlert?.hazardType || "");
+      setBody(draftAlert?.body || "");
+    } catch (error) {
+      setDraftError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate alert draft.",
+      );
+    } finally {
+      setIsDraftLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -150,6 +175,12 @@ function AlertButton({ uid }: { uid: string }) {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-6">
+              {draftError && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                  {draftError}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <TextField
                   label="Title"
@@ -157,6 +188,7 @@ function AlertButton({ uid }: { uid: string }) {
                   value={title}
                   size="small"
                   fullWidth
+                  disabled={isDraftLoading || isPosting}
                 />
                 <TextField
                   label="Severity"
@@ -164,6 +196,7 @@ function AlertButton({ uid }: { uid: string }) {
                   value={severity}
                   size="small"
                   fullWidth
+                  disabled={isDraftLoading || isPosting}
                 />
                 <TextField
                   label="Hazard Type"
@@ -171,6 +204,7 @@ function AlertButton({ uid }: { uid: string }) {
                   value={hazardType}
                   size="small"
                   fullWidth
+                  disabled={isDraftLoading || isPosting}
                 />
                 <div className="flex items-center rounded-xl bg-primary/5 px-3 py-2 text-xs text-textGrey">
                   Coordinates: {lat || "-"}, {lng || "-"}
@@ -184,7 +218,15 @@ function AlertButton({ uid }: { uid: string }) {
                 onChange={(e) => setBody(e.target.value)}
                 value={body}
                 fullWidth
+                disabled={isDraftLoading || isPosting}
               />
+
+              {isDraftLoading && (
+                <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
+                  <span className="h-4 w-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+                  Generating alert draft...
+                </div>
+              )}
 
               {submitError && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
@@ -196,14 +238,14 @@ function AlertButton({ uid }: { uid: string }) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  disabled={isPosting}
+                  disabled={isDraftLoading || isPosting}
                   className="cursor-pointer rounded-xl border border-textGrey/30 px-5 py-2 text-sm font-semibold text-textGrey transition hover:bg-textGrey/5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isPosting}
+                  disabled={isDraftLoading || isPosting}
                   className="flex min-w-32 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2 text-sm font-bold text-white shadow-md transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isPosting ? (
