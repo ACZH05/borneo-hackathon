@@ -26,6 +26,14 @@ type SearchItem = {
   keywords: string[];
 };
 
+function isActiveNavPath(pathname: string, href: string): boolean {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 // --- Navigation Link List ---
 const residentNavLinks: NavLink[] = [
   { name: "Home", href: "/", icon: "home" },
@@ -190,8 +198,7 @@ export default function Header() {
             <Link
               href={link.href}
               className={`inline-block rounded-full px-5 py-2 no-underline text-sm font-semibold transition-all ease-in-out duration-300 ${
-                pathname === link.href ||
-                (link.subLinks && pathname.startsWith(link.href))
+                isActiveNavPath(pathname, link.href)
                   ? "bg-primary text-surface"
                   : "text-textGrey hover:bg-secondary/20"
               }`}
@@ -318,8 +325,7 @@ function Drawer({ navLinks }: { navLinks: NavLink[] }): JSX.Element {
               <Link
                 href={link.href}
                 className={`text-sm font-bold px-4 py-3 ${
-                  pathname === link.href ||
-                  (link.subLinks && pathname.startsWith(link.href))
+                  isActiveNavPath(pathname, link.href)
                     ? "bg-primary text-surface"
                     : "text-textGrey hover:bg-secondary/20"
                 }`}
