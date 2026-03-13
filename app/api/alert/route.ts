@@ -68,7 +68,8 @@ export async function GET() {
         time: timeStr,
         regionCode: alert.regionCode,
         lat: alert.lat,
-        lng: alert.lng
+        lng: alert.lng,
+        status: alert.status 
       };
     });
 

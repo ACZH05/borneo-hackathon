@@ -42,9 +42,11 @@ const residentNavLinks: NavLink[] = [
   { name: "Profile", href: "/page-profile", icon: "person" },
 ];
 
+// --- Admin Navigation Links ---
 const adminNavLinks: NavLink[] = [
-  { name: "SOS", href: "/admin/page-sos" },
-  { name: "Profile", href: "/admin/page-profile" },
+  { name: "SOS", href: "/admin/page-sos", icon: "health_and_safety" },
+  { name: "Alerts", href: "/admin/page-alerts", icon: "warning" }, // 🚨 ADDED YOUR NEW ALERTS PAGE!
+  { name: "Profile", href: "/admin/page-profile", icon: "person" },
 ];
 
 const residentSearchItems: SearchItem[] = [
@@ -92,6 +94,12 @@ const adminSearchItems: SearchItem[] = [
     href: "/admin/page-sos",
     description: "Monitor and respond to SOS requests.",
     keywords: ["rescue", "emergency", "requests", "dashboard"],
+  },
+  {
+    name: "AI Alert Drafts",
+    href: "/admin/page-alerts", 
+    description: "Review and publish automated weather alerts.",
+    keywords: ["alerts", "weather", "drafts", "publish", "warnings"],
   },
   {
     name: "Admin Profile",

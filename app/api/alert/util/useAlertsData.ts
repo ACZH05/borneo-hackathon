@@ -10,7 +10,6 @@ let cacheUpdatedAt = 0;
 let inflightRequest: Promise<AlertItemInfo[]> | null = null;
 
 // --- Compute Alert Statistics ---
-// This function derives key statistics from the list of alerts, such as the latest alert, overall alert level, number of active incidents, last update time and the top two most recent alerts.
 function getAlertStats(alerts: AlertItemInfo[]): AlertStats {
   const latestAlert = alerts[0] ?? null;
 
@@ -37,7 +36,8 @@ async function fetchAllAlerts(force = false): Promise<AlertItemInfo[]> {
   }
 
   inflightRequest = (async () => {
-    const response = await fetch("/api/alert");
+    // 🚨 FIX 1: Explicitly ask the API for published alerts, and disable Next.js caching!
+    const response = await fetch("/api/alert?status=published", { cache: "no-store" });
     if (!response.ok) {
       throw new Error("Failed to fetch alerts");
     }
@@ -47,7 +47,11 @@ async function fetchAllAlerts(force = false): Promise<AlertItemInfo[]> {
       throw new Error("Invalid alert response");
     }
 
-    alertsCache = data.alerts;
+    // 🚨 FIX 2: Double security layer. Strictly filter out anything that is a draft!
+    // We use 'as any' briefly just in case your AlertItemInfo type doesn't have 'status' yet.
+    const strictlyPublishedAlerts = data.alerts.filter((alert: any) => alert.status !== "draft");
+
+    alertsCache = strictlyPublishedAlerts;
     cacheUpdatedAt = Date.now();
     return alertsCache;
   })();
@@ -89,8 +93,8 @@ export function useAlertsData() {
   const stats = useMemo(() => getAlertStats(alerts), [alerts]);
 
   return {
-    alerts,                          // List of all alerts.
-    stats,                           // Computed statistics based on current alerts (latest alert, alert level, active incidents, last update, top 2 alerts).
+    alerts,                          // List of all strictly published alerts.
+    stats,                           // Computed statistics based on current alerts.
     isLoading,                       // Loading state for initial fetch or forced refresh.
     error,                           // Error message if fetching fails.
     refresh: () => loadAlerts(true), // Function to force refresh alerts data, bypassing cache.
