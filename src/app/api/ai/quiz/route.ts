@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { generateGeminiText } from '@/lib/server/gemini';
 
 export async function POST(request: Request) {
   try {
@@ -10,11 +8,6 @@ export async function POST(request: Request) {
     if (!hazardType) {
       return NextResponse.json({ error: "Missing hazardType" }, { status: 400 });
     }
-
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      generationConfig: { responseMimeType: "application/json" } 
-    });
 
 const prompt = `
       SYSTEM DIRECTIVE:
@@ -47,8 +40,8 @@ const prompt = `
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const quizData = JSON.parse(result.response.text());
+    const responseText = await generateGeminiText(prompt);
+    const quizData = JSON.parse(responseText);
 
     return NextResponse.json({ success: true, quiz: quizData }, { status: 200 });
 

@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg'; 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiText } from '@/lib/server/gemini';
 
 // 1. Initialize Database Adapter
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!, 
 });
 const prisma = new PrismaClient({ adapter });
-
-// 2. Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: Request) {
   try {
@@ -42,12 +39,6 @@ export async function POST(request: Request) {
     // 3. ASK GEMINI TO TRIAGE THE EMERGENCY
     let aiTriageData = null;
     try {
-      // We use the flash model because it is incredibly fast
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash",
-        generationConfig: { responseMimeType: "application/json" } // Force clean JSON
-      });
-
       const prompt = `
                         You are the "Aegis Crisis Triage System", an advanced AI assistant designed for emergency dispatchers. 
                         Your primary function is to rapidly analyze inbound civilian SOS reports, extract critical incident parameters, and format actionable intelligence.
@@ -71,9 +62,7 @@ export async function POST(request: Request) {
                         }
                         `;
 
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
-      
+      const responseText = await generateGeminiText(prompt);
       aiTriageData = JSON.parse(responseText);
       console.log("Gemini Triage successful:", aiTriageData); 
     } catch (aiError) {
@@ -114,7 +103,7 @@ export async function POST(request: Request) {
 }
 
 // Keep the GET route exactly the same!
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const reports = await prisma.incidentReport.findMany({
       orderBy: { createdAt: 'desc' },

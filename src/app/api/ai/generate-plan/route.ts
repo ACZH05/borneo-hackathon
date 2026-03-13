@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiText } from '@/lib/server/gemini';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: Request) {
   try {
@@ -16,13 +15,6 @@ export async function POST(request: Request) {
     if (!userId || !hazardType) {
       return NextResponse.json({ error: "Missing userId or hazardType" }, { status: 400 });
     }
-
-    // 2. Setup Gemini
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      // Forcing Gemini to output pure JSON so our app doesn't crash!
-      generationConfig: { responseMimeType: "application/json" } 
-    });
 
     // 3. The "Smart Engineer" Prompt
    const prompt = `
@@ -53,8 +45,8 @@ export async function POST(request: Request) {
     `;
 
     // 4. Ask Gemini
-    const result = await model.generateContent(prompt);
-    const generatedData = JSON.parse(result.response.text());
+    const responseText = await generateGeminiText(prompt);
+    const generatedData = JSON.parse(responseText);
 
     // 5. Save directly to your PostgreSQL Database
     const newPlan = await prisma.emergencyPlan.create({

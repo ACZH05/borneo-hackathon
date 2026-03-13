@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { generateGeminiText } from '@/lib/server/gemini';
 
 export async function POST(request: Request) {
   try {
@@ -10,11 +8,6 @@ export async function POST(request: Request) {
     if (!rawInput) {
       return NextResponse.json({ error: "Missing raw input" }, { status: 400 });
     }
-
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      generationConfig: { responseMimeType: "application/json" } 
-    });
 
     const prompt = `
       You are the "Aegis Early Warning System" for Borneo. 
@@ -33,8 +26,8 @@ export async function POST(request: Request) {
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const aiDraft = JSON.parse(result.response.text());
+    const responseText = await generateGeminiText(prompt);
+    const aiDraft = JSON.parse(responseText);
 
     // Combine the translations and actions into the exact 'description' format the frontend expects
     const formattedDescription = `
