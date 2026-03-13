@@ -7,7 +7,7 @@ import FmdGoodOutlinedIcon from "@mui/icons-material/FmdGoodOutlined";
 import { AlertItemInfo } from "@/app/api/alert/util/types";
 import { formatAlertBody } from "@/app/api/alert/util/formatAlertBody";
 import { filterOptions } from "@/app/page-alerts/components/Alert-Filter";
-import MapDisplay from "@/app/api/map/route";
+import MapDisplay from "@/app/api/map/MapDisplay";
 import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
 
 // --- Severity border colour for featured card ---

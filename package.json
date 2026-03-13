@@ -2,9 +2,9 @@
   "name": "borneo-hackathon",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
+"scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "prisma": "node --experimental-require-module ./node_modules/prisma/build/index.js"
