@@ -10,7 +10,7 @@ export default function AlertItem(item: AlertItemInfo & { onMapClick?: () => voi
     let cardColor: string;
     let textColor: string;
     let priorityBackground: string;
-    switch (item.severity) {
+    switch (item.severity.toLocaleLowerCase()) {
         case "priority": cardColor = "border-priority"; textColor = "text-priority"; priorityBackground = "bg-priority/10"; break;
         case "warning":  cardColor = "border-warning";  textColor = "text-warning";  priorityBackground = "bg-warning/10";  break;
         case "monitor":  cardColor = "border-monitor";  textColor = "text-monitor";  priorityBackground = "bg-monitor/10";  break;
