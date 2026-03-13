@@ -13,7 +13,13 @@ function getGeminiApiKeys(): string[] {
     env.GEMINI_API_KEY_3,
     env.GEMINI_API_KEY_4,
     env.GEMINI_API_KEY_5,
-    env.GEMINI_API_KEY_6
+    env.GEMINI_API_KEY_6,
+    env.GEMINI_API_KEY_7,
+    env.GEMINI_API_KEY_8,
+    env.GEMINI_API_KEY_9,
+    env.GEMINI_API_KEY_10,
+    env.GEMINI_API_KEY_11,
+    env.GEMINI_API_KEY_12
   ];
 
   return [...new Set(candidates.filter((key): key is string => Boolean(key)))];
