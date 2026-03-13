@@ -55,7 +55,7 @@ export async function GET(request: Request) {
           {
             event: "Strong Winds & Rough Seas",
             desc: "Wind speeds exceeding 60km/h expected along the east coast. Small boats should not go out to sea.",
-            severity: "Moderate",
+            severity: "Monitor",
             lat: 3.8126,
             lon: 103.3256,
             regionCode: "MY-06" // Pahang

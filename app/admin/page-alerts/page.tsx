@@ -26,7 +26,7 @@ const getSeverityStyle = (severity: string) => {
         textColor: "text-warning",
         backgroundColor: "bg-warning/10",
       };
-    case "moderate":
+    case "monitor":
       return {
         textColor: "text-monitor",
         backgroundColor: "bg-monitor/10",
