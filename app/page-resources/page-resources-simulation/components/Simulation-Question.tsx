@@ -83,7 +83,7 @@ export default function SimulationQuestion({ hazardType, setIsSimulating }: Simu
     {/* --- Loading State --- */}
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center p-20 gap-4 h-full">
+            <div className="flex flex-col flex-1 items-center justify-center p-20 gap-4">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
                 <p className="text-gray-600 font-semibold text-center">Generating Simulation Scenario...</p>
             </div>

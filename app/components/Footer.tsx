@@ -2,19 +2,19 @@
 
 export default function Footer() {
   return (
-    <footer className="sticky bottom-0 left-0 right-0 flex flex-wrap gap-6 items-center justify-between bg-surface border-t border-foreground/20 shadow-sm min-w-screen px-8 py-4">
+    <footer
+      id="site-footer"
+      className="flex flex-wrap gap-6 items-center justify-between bg-surface border-t border-foreground/20 shadow-sm w-full px-8 py-4"
+    >
       <div className="flex items-center gap-3">
         {/* --- Logo --- */}
         <div className="flex items-center justify-center rounded-full bg-secondary/20 h-10 w-10">
-          <span className="material-symbols-outlined text-2xl text-primary">
-            spa
-          </span>{" "}
-          {/* Logo Icon from Google Material Symbols */}
+          <img src="/favicon.ico" alt="logo" className="h-full w-full" />
         </div>
 
         {/* --- Copyright --- */}
         <span className="text-xs text-textGrey">
-          © 2026 BorNEO AI. All rights reserved.
+          © 2026 HACHIMI AI. All rights reserved.
         </span>
       </div>
 

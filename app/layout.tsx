@@ -31,15 +31,16 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="antialiased flex flex-col h-full overflow-hidden">
+      <body className="antialiased">
         <UserIdProvider>
           <AuthListener />
-          <Header />
-          <main className="flex-1 min-h-0 overflow-y-auto">
-            {children}
-          </main>{" "}
-          {/* Pass the content in "page.tsx" as children to the layout */}
-          <Footer />
+          <div className="flex flex-col min-h-full">
+            <Header />
+            <main className="flex-1"> {/* Pass the content in "page.tsx" as children to the layout */}
+              {children}
+            </main> 
+            <Footer />
+          </div>
         </UserIdProvider>
       </body>
     </html>
