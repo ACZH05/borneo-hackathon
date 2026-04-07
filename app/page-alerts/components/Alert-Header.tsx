@@ -11,10 +11,29 @@ import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
 import Skeleton from "@/app/components/Skeleton";
 
 const ALERTS_PER_PAGE = 5;
+const MALAYSIA_STATE_OPTIONS = [
+    "Johor",
+    "Kedah",
+    "Kelantan",
+    "Kuala Lumpur",
+    "Labuan",
+    "Melaka",
+    "Negeri Sembilan",
+    "Pahang",
+    "Perak",
+    "Perlis",
+    "Pulau Pinang",
+    "Putrajaya",
+    "Sabah",
+    "Sarawak",
+    "Selangor",
+    "Terengganu",
+];
 
 export default function AlertHeader() {
     const searchParams = useSearchParams();
     const [activeFilter, setActiveFilter] = useState("all"); // Active Filter State (Default to "All Threats")
+    const [activeState, setActiveState] = useState("all");
     const [displayMode, setDisplayMode] = useState("list"); // "List" or "Map" Mode State (Default to "List")
     const [focusedAlert, setFocusedAlert] = useState<AlertItemInfo | null>(null); // Alert to zoom into on map.
     const [currentPage, setCurrentPage] = useState(1);
@@ -25,12 +44,13 @@ export default function AlertHeader() {
     const filteredAlerts = useMemo(
         () =>
             alerts.filter((item) =>
-                activeFilter === "all" ||
-                (activeFilter === "other"
-                    ? !["flood", "landslide", "tidal"].includes(item.hazardType)
-                    : item.hazardType === activeFilter)
+                (activeFilter === "all" ||
+                    (activeFilter === "other"
+                        ? !["flood", "landslide", "tidal"].includes(item.hazardType)
+                        : item.hazardType === activeFilter)) &&
+                (activeState === "all" || item.stateName === activeState)
             ),
-        [activeFilter, alerts]
+        [activeFilter, activeState, alerts]
     );
     const totalPages = Math.max(1, Math.ceil(filteredAlerts.length / ALERTS_PER_PAGE));
     const paginatedAlerts = useMemo(() => {
@@ -71,7 +91,7 @@ export default function AlertHeader() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [activeFilter]);
+    }, [activeFilter, activeState]);
 
     useEffect(() => {
         if (currentPage > totalPages) {
@@ -100,7 +120,13 @@ export default function AlertHeader() {
             </div>
             
             {/* --- Filter --- */}
-            <AlertFilter activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+            <AlertFilter
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                activeState={activeState}
+                stateOptions={MALAYSIA_STATE_OPTIONS}
+                onStateChange={setActiveState}
+            />
 
             {/* --- Alert List or Map --- */}
             {
@@ -186,7 +212,7 @@ export default function AlertHeader() {
                 ) 
 
                 /* --- Alert Map --- */
-                : <AlertItemMap alerts={alerts} activeFilter={activeFilter} focusedAlert={focusedAlert} onPinClick={(alert) => {
+                : <AlertItemMap alerts={filteredAlerts} activeFilter={activeFilter} focusedAlert={focusedAlert} onPinClick={(alert) => {
                     const key = alert.id || `${alert.lat}-${alert.lng}-${alerts.indexOf(alert)}`;
                     setDisplayMode("list");
                     setFocusedAlert(null); // Scroll to the alert card after switching to list mode

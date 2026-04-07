@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'; // <-- This stops Next.js from caching!
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { inferMalaysiaStateFromCoordinates, normalizeMalaysiaState } from '@/app/api/alert/util/malaysiaState';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -46,17 +47,17 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     });
 
-    // We must format the database data to perfectly match your frontend's AlertItemInfo interface!
-    const formattedAlerts = alerts.map(alert => {
+    const formattedAlerts = await Promise.all(alerts.map(async (alert) => {
       const dateObj = new Date(alert.createdAt);
       
-      // Extract YYYY-MM-DD
       const dateStr = dateObj.toISOString().split('T')[0]; 
       
-      // Extract HH:MM AM/PM
       const timeStr = dateObj.toLocaleTimeString('en-US', { 
         hour: '2-digit', minute: '2-digit', hour12: true 
       });
+      const normalizedState =
+        normalizeMalaysiaState(alert.regionCode) ??
+        await inferMalaysiaStateFromCoordinates(alert.lat, alert.lng);
 
       return {
         id: alert.id,
@@ -67,11 +68,12 @@ export async function GET() {
         date: dateStr,
         time: timeStr,
         regionCode: alert.regionCode,
+        stateName: normalizedState,
         lat: alert.lat,
         lng: alert.lng,
         status: alert.status 
       };
-    });
+    }));
 
     return NextResponse.json({ success: true, alerts: formattedAlerts });
   } catch (error) {
