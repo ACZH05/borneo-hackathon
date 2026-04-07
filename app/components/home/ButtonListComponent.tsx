@@ -19,6 +19,16 @@ type SubmissionStatus =
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
+type SosResponse = {
+  message?: string;
+  emergencyContactNotification?: {
+    email?: string | null;
+    notified?: boolean;
+    error?: string | null;
+  } | null;
+  isGuestReporter?: boolean;
+};
+
 export default function ButtonListComponent({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [hazard, setHazard] = useState("");
@@ -78,15 +88,6 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
       return;
     }
 
-    if (!userId) {
-      console.error("Missing userId for SOS request");
-      setSubmissionStatus({
-        type: "error",
-        message: "Unable to send SOS signal because your session is missing. Please log in again.",
-      });
-      return;
-    }
-
     if (!hazard) {
       console.error("Hazard type is required for SOS request");
       setSubmissionStatus({
@@ -108,7 +109,7 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId,
+          userId: userId || null,
           lat: location.lat,
           lng: location.lng,
           hazardType: hazard,
@@ -128,21 +129,34 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
       }
 
       const responseData: unknown = await response.json();
+      const sosResponse =
+        responseData && typeof responseData === "object"
+          ? (responseData as SosResponse)
+          : null;
       const successMessage =
-        responseData &&
-        typeof responseData === "object" &&
-        "message" in responseData &&
-        typeof (responseData as { message?: unknown }).message === "string"
-          ? (responseData as { message: string }).message
+        sosResponse &&
+        typeof sosResponse.message === "string"
+          ? sosResponse.message
           : "SOS signal sent successfully.";
+      const emergencyContactStatus =
+        sosResponse?.isGuestReporter
+          ? ""
+          : sosResponse?.emergencyContactNotification?.email
+          ? sosResponse.emergencyContactNotification.notified
+            ? `Emergency contact notified at ${sosResponse.emergencyContactNotification.email}.`
+            : `Emergency contact email failed${sosResponse.emergencyContactNotification.error ? `: ${sosResponse.emergencyContactNotification.error}` : "."}`
+          : "No approved emergency contact Gmail available.";
+      const combinedSuccessMessage = [successMessage, emergencyContactStatus]
+        .filter(Boolean)
+        .join(" ");
 
-      console.log(successMessage);
+      console.log(combinedSuccessMessage);
       setIsOpen(false);
       setHazard("");
       setDescription("");
       setSubmissionStatus({
         type: "success",
-        message: successMessage,
+        message: combinedSuccessMessage,
       });
     } catch (error) {
       console.error("Failed to send SOS request:", error);

@@ -16,6 +16,7 @@ type RescueCardData = {
   medicalConditions?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyContactGmail?: string;
   homeAddress?: string;
   qrCodeData?: string;
 };
@@ -88,7 +89,7 @@ export default function HomePage() {
       <div className="col-span-1 flex min-w-0 flex-col gap-8 lg:col-span-2">
         <div className="wrap-break-word text-4xl font-bold sm:text-5xl lg:text-6xl">
           Together for a <br />
-          <span>Resilient Borneo</span>
+          <span>Resilient Malaysia</span>
         </div>
 
         <div className="">
@@ -105,6 +106,7 @@ export default function HomePage() {
           medicalConditions={rescueCard?.medicalConditions ?? ""}
           emergencyContactName={rescueCard?.emergencyContactName ?? ""}
           emergencyContactPhone={rescueCard?.emergencyContactPhone ?? ""}
+          emergencyContactGmail={rescueCard?.emergencyContactGmail ?? ""}
           homeAddress={rescueCard?.homeAddress ?? ""}
           qrCodeData={rescueCard?.qrCodeData ?? ""}
         />

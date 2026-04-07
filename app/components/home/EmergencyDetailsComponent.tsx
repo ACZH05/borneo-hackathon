@@ -3,6 +3,7 @@
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CallIcon from "@mui/icons-material/Call";
 import CloseIcon from "@mui/icons-material/Close";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import { Modal } from "@mui/material";
 import Image from "next/image";
 import { useState } from "react";
@@ -14,6 +15,7 @@ export default function EmergencyDetailsComponent({
   medicalConditions,
   emergencyContactName,
   emergencyContactPhone,
+  emergencyContactGmail,
   homeAddress,
   qrCodeData,
 }: {
@@ -23,10 +25,42 @@ export default function EmergencyDetailsComponent({
   medicalConditions: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  emergencyContactGmail: string;
   homeAddress: string;
   qrCodeData: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
+
+  const handleShareQr = async () => {
+    if (!qrCodeData) {
+      setShareStatus("QR code unavailable.");
+      return;
+    }
+
+    try {
+      const response = await fetch(qrCodeData);
+      const blob = await response.blob();
+      const file = new File([blob], "emergency-qr.png", { type: blob.type || "image/png" });
+
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+        await navigator.share({
+          title: "Emergency QR Code",
+          text: "Emergency details QR code",
+          files: [file],
+        });
+        setShareStatus("QR code shared.");
+        return;
+      }
+
+      await navigator.clipboard.writeText(qrCodeData);
+      setShareStatus("QR code copied to clipboard.");
+    } catch (error) {
+      console.error("Failed to share QR code:", error);
+      setShareStatus("Unable to share QR code.");
+    }
+  };
+
   return (
     <>
       <button
@@ -49,8 +83,14 @@ export default function EmergencyDetailsComponent({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl bg-surface/10 p-3">
-            <span className="text-[11px] font-semibold tracking-wide text-surface/80">NAME</span>
+            <span className="text-[11px] font-semibold tracking-wide text-surface/80">PERSONAL INFO</span>
             <p className="mt-1 wrap-break-word text-sm font-bold">{name || "-"}</p>
+            <div className="mt-1 text-xs text-surface/90">
+              Blood Type: <span className="font-semibold">{bloodType || "-"}</span>
+            </div>
+            <div className="mt-1 text-xs wrap-break-words text-surface/90">
+              Allergies: <span className="font-semibold">{allergies || "-"}</span>
+            </div>
           </div>
 
           <div className="rounded-xl bg-surface/10 p-3">
@@ -61,6 +101,10 @@ export default function EmergencyDetailsComponent({
             <div className="mt-1 flex items-center gap-1 text-xs break-all text-surface/90">
               <CallIcon fontSize="small" />
               {emergencyContactPhone || "-"}
+            </div>
+            <div className="mt-1 flex items-center gap-1 text-xs break-all text-surface/90">
+              <EmailOutlinedIcon fontSize="small" />
+              {emergencyContactGmail || "-"}
             </div>
           </div>
         </div>
@@ -153,6 +197,15 @@ export default function EmergencyDetailsComponent({
 
               <div className="rounded-xl border border-textGrey/10 bg-background p-4 sm:col-span-2">
                 <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
+                  EMERGENCY CONTACT GMAIL
+                </p>
+                <p className="mt-1 wrap-break-word text-sm font-bold text-textBlack">
+                  {emergencyContactGmail || "-"}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-textGrey/10 bg-background p-4 sm:col-span-2">
+                <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
                   HOME ADDRESS
                 </p>
                 <p className="mt-1 wrap-break-word text-sm font-bold text-textBlack">
@@ -162,9 +215,18 @@ export default function EmergencyDetailsComponent({
             </div>
 
             <div className="w-full rounded-2xl border border-primary/20 bg-primary/5 p-4 lg:max-w-65">
-              <p className="text-center text-[11px] font-semibold tracking-wide text-textGrey/80">
-                SCAN QR CODE
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
+                  SCAN QR CODE
+                </p>
+                <button
+                  type="button"
+                  onClick={handleShareQr}
+                  className="rounded-lg border border-primary/20 bg-white px-3 py-1.5 text-[11px] font-semibold text-primary transition hover:bg-primary/10"
+                >
+                  Share
+                </button>
+              </div>
               <div className="mt-3 flex min-h-55 items-center justify-center rounded-xl bg-white p-3">
                 {qrCodeData ? (
                   <Image src={qrCodeData} alt="QR" width={220} height={220} />
@@ -172,6 +234,9 @@ export default function EmergencyDetailsComponent({
                   <span className="text-sm text-textGrey">QR code unavailable</span>
                 )}
               </div>
+              {shareStatus && (
+                <p className="mt-2 text-center text-[11px] text-textGrey">{shareStatus}</p>
+              )}
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg'; 
 import { generateGeminiText } from '@/app/lib/server/gemini';
+import { sendEmail } from '@/app/lib/server/email';
 
 // 1. Initialize Database Adapter
 const adapter = new PrismaPg({
@@ -9,14 +10,33 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
+function formatSeverity(aiTriageData: unknown) {
+  if (
+    aiTriageData &&
+    typeof aiTriageData === "object" &&
+    "severity" in aiTriageData &&
+    typeof (aiTriageData as { severity?: unknown }).severity === "string"
+  ) {
+    return (aiTriageData as { severity: string }).severity;
+  }
+
+  return "Unknown";
+}
+
+function getEmergencyContactNotificationStatus(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return "Failed to notify emergency contact.";
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // 1. Add userId to the extracted body data
     const { userId, lat, lng, hazardType, description } = body;
 
-    // 2. Require the userId to be present
-    if (!userId || !lat || !lng || !description) {
+    if (!lat || !lng || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -69,11 +89,25 @@ export async function POST(request: Request) {
       console.error("Gemini Triage failed, but saving report anyway:", aiError);
     }
 
-    // 4. Default User Setup 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    
+    let user = null;
+    let isGuestReporter = false;
+
+    if (userId) {
+      user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { rescueCard: true },
+      });
+    }
+
     if (!user) {
-      return NextResponse.json({ error: "User not found. Please log in." }, { status: 404 });
+      isGuestReporter = true;
+      user = await prisma.user.create({
+        data: {
+          name: "Guest SOS Reporter",
+          role: "resident",
+        },
+        include: { rescueCard: true },
+      });
     }
 
     // 5. Save to Database WITH the Gemini AI data
@@ -90,10 +124,77 @@ export async function POST(request: Request) {
       },
     });
 
+    const emergencyContactGmail = user.rescueCard?.emergencyContactGmail?.trim().toLowerCase();
+    let emergencyContactNotified = false;
+    let emergencyContactNotificationError: string | null = null;
+
+    if (emergencyContactGmail) {
+      try {
+        const severity = formatSeverity(aiTriageData);
+        const emergencyContactName = user.rescueCard?.emergencyContactName || "Emergency contact";
+        const mapsLink = `https://www.google.com/maps?q=${parseFloat(lat)},${parseFloat(lng)}`;
+        const victimName = user.name || user.email || "A BorNEO AI user";
+        const bloodType = user.rescueCard?.bloodType || "Not provided";
+        const allergies = user.rescueCard?.allergies || "None declared";
+        const medicalConditions = user.rescueCard?.medicalConditions || "None declared";
+        const contactPhone = user.rescueCard?.emergencyContactPhone || "Not provided";
+        const contactGmail = user.rescueCard?.emergencyContactGmail || "Not provided";
+        const homeAddress = user.rescueCard?.homeAddress || "Not provided";
+
+        await sendEmail({
+          to: emergencyContactGmail,
+          subject: `SOS alert for ${victimName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+              <h2>SOS Alert Notification</h2>
+              <p>Hello ${emergencyContactName},</p>
+              <p>${victimName} has triggered an SOS alert and listed your email as their approved emergency contact.</p>
+              <p><strong>Hazard type:</strong> ${hazardType || "unknown"}</p>
+              <p><strong>Severity:</strong> ${severity}</p>
+              <p><strong>Description:</strong> ${description}</p>
+              <p><strong>Address:</strong> ${formattedAddress}</p>
+              <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;" />
+              <h3>Victim Personal Information</h3>
+              <p><strong>Name:</strong> ${victimName}</p>
+              <p><strong>Blood type:</strong> ${bloodType}</p>
+              <p><strong>Allergies:</strong> ${allergies}</p>
+              <p><strong>Medical conditions:</strong> ${medicalConditions}</p>
+              <p><strong>Emergency contact name:</strong> ${emergencyContactName}</p>
+              <p><strong>Emergency contact phone:</strong> ${contactPhone}</p>
+              <p><strong>Emergency contact Gmail:</strong> ${contactGmail}</p>
+              <p><strong>Home address:</strong> ${homeAddress}</p>
+              <p><a href="${mapsLink}" style="display:inline-block;padding:12px 18px;background:#b91c1c;color:#fff;text-decoration:none;border-radius:8px;">Open Location</a></p>
+            </div>
+          `,
+          text: `SOS Alert Notification\n\n${victimName} triggered an SOS alert.\nHazard type: ${hazardType || "unknown"}\nSeverity: ${severity}\nDescription: ${description}\nAddress: ${formattedAddress}\n\nVictim Personal Information\nName: ${victimName}\nBlood type: ${bloodType}\nAllergies: ${allergies}\nMedical conditions: ${medicalConditions}\nEmergency contact name: ${emergencyContactName}\nEmergency contact phone: ${contactPhone}\nEmergency contact Gmail: ${contactGmail}\nHome address: ${homeAddress}\n\nLocation: ${mapsLink}`,
+        });
+        emergencyContactNotified = true;
+      } catch (emailError) {
+        console.error("Emergency contact email failed, but SOS report was saved:", emailError);
+        emergencyContactNotificationError = getEmergencyContactNotificationStatus(emailError);
+      }
+    }
+
+    const message = isGuestReporter
+      ? "SOS Report analyzed and saved. Admin dashboard updated."
+      : emergencyContactGmail
+      ? emergencyContactNotified
+        ? "SOS Report analyzed and saved. Admin dashboard updated and emergency contact notified."
+        : "SOS Report analyzed and saved. Admin dashboard updated, but emergency contact email could not be delivered."
+      : "SOS Report analyzed and saved. Admin dashboard updated. No approved emergency contact Gmail was available.";
+
     return NextResponse.json({ 
       success: true, 
-      message: 'SOS Report analyzed and saved!',
-      report 
+      message,
+      report,
+      emergencyContactNotification: isGuestReporter
+        ? null
+        : {
+            email: emergencyContactGmail ?? null,
+            notified: emergencyContactNotified,
+            error: emergencyContactNotificationError,
+          },
+      isGuestReporter,
     }, { status: 201 });
 
   } catch (error) {

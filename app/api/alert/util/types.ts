@@ -7,6 +7,7 @@ export interface AlertItemInfo {
   date: string;
   time: string;
   regionCode: string;
+  stateName?: string | null;
   lat: number;
   lng: number;
 }

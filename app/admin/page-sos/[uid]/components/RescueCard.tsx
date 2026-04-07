@@ -7,6 +7,7 @@ type RescueCardProps = {
   medicalConditions: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  emergencyContactGmail: string;
   homeAddress: string;
 };
 
@@ -38,6 +39,7 @@ function RescueCard({
   medicalConditions,
   emergencyContactName,
   emergencyContactPhone,
+  emergencyContactGmail,
   homeAddress,
 }: RescueCardProps) {
   const safeName = name || "Unknown User";
@@ -46,6 +48,7 @@ function RescueCard({
   const safeHomeAddress = homeAddress || "N/A";
   const safeEmergencyContact = emergencyContactName || "N/A";
   const safeEmergencyContactPhone = emergencyContactPhone || "N/A";
+  const safeEmergencyContactGmail = emergencyContactGmail || "N/A";
   const safeAllergies = allergies || "N/A";
 
   return (
@@ -62,6 +65,11 @@ function RescueCard({
         <CardField
           label="EMERGENCY CONTACT PHONE"
           value={safeEmergencyContactPhone}
+          className="col-span-2"
+        />
+        <CardField
+          label="EMERGENCY CONTACT GMAIL"
+          value={safeEmergencyContactGmail}
           className="col-span-2"
         />
       </div>

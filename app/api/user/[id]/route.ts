@@ -1,19 +1,43 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg'; 
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-// 🚨 KILLS NEXT.JS SERVER CACHING FOREVER FOR THIS ROUTE
-export const dynamic = 'force-dynamic'; 
+export const dynamic = "force-dynamic";
 
-// 1. Initialize Database Adapter
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!, 
+  connectionString: process.env.DATABASE_URL!,
 });
-const prisma = new PrismaClient({ adapter });  
+const prisma = new PrismaClient({ adapter });
+
+async function getLatestPendingConsent(userId: string) {
+  const consentRequest = await prisma.emergencyContactConsentRequest.findFirst({
+    where: {
+      requesterUserId: userId,
+      status: "pending",
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!consentRequest) {
+    return null;
+  }
+
+  return {
+    email: consentRequest.pendingEmail,
+    status: consentRequest.status,
+    expiresAt: consentRequest.expiresAt,
+    createdAt: consentRequest.createdAt,
+  };
+}
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> } 
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const resolvedParams = await params;
@@ -23,24 +47,29 @@ export async function GET(
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Fetch the user from your database
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      // 🚨 CHANGED FROM 'select' TO 'include' TO GUARANTEE THE RESCUE CARD LOADS
       include: {
-        rescueCard: true, 
-      }
+        rescueCard: true,
+      },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, user }, { status: 200 });
+    const pendingEmergencyContactConsent = await getLatestPendingConsent(user.id);
 
+    return NextResponse.json({
+      success: true,
+      user: {
+        ...user,
+        pendingEmergencyContactConsent,
+      },
+    }, { status: 200 });
   } catch (error) {
     console.error("Error fetching user profile:", error);
-    return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
   }
 }
 
@@ -56,11 +85,9 @@ export async function PATCH(
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // 1. Get the new data from the frontend
     const body = await request.json();
     const { name, regionCode } = body;
 
-    // 2. Update the user in the Prisma database
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -68,14 +95,21 @@ export async function PATCH(
         ...(regionCode && { regionCode }),
       },
       include: {
-        rescueCard: true, // Keep the rescue card attached when returning updated user
-      }
+        rescueCard: true,
+      },
     });
 
-    return NextResponse.json({ success: true, user: updatedUser }, { status: 200 });
+    const pendingEmergencyContactConsent = await getLatestPendingConsent(updatedUser.id);
 
+    return NextResponse.json({
+      success: true,
+      user: {
+        ...updatedUser,
+        pendingEmergencyContactConsent,
+      },
+    }, { status: 200 });
   } catch (error) {
     console.error("Error updating user profile:", error);
-    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
