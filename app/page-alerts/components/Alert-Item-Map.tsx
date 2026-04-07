@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
+import { useEffect, useMemo, useState } from "react";
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import { AlertItemInfo } from "@/app/api/alert/util/types";
 import { filterOptions } from "./Alert-Filter";
 import { requestUserLocation } from "@/app/lib/permission/location";
@@ -11,6 +11,116 @@ interface AlertItemMapProps {
     activeFilter: string;
     focusedAlert?: AlertItemInfo | null;
     onPinClick?: (alert: AlertItemInfo) => void;
+}
+
+type RadiusCircleProps = {
+    center: google.maps.LatLngLiteral;
+    radius: number;
+    strokeColor: string;
+    fillColor: string;
+};
+
+type CircleCenter = {
+    lat: number;
+    lng: number;
+};
+
+// --- Alert Impact Radius (1km) ---
+const ALERT_RADIUS_METERS = 1000;
+
+// --- Helper: Distance Between Two Coordinates (Meters) ---
+function getDistanceMeters(a: CircleCenter, b: CircleCenter) {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const earthRadius = 6371000;
+
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLng = Math.sin(dLng / 2);
+    const haversine = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+    const c = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+
+    return earthRadius * c;
+}
+
+// --- Merge Overlapping Alert Circles ---
+// If two alert circles overlap, they will be grouped into one cluster circle.
+// This also supports chain overlaps (A overlaps B, B overlaps C).
+function mergeOverlappingCircles(points: CircleCenter[], baseRadius: number) {
+    if (points.length === 0) return [];
+
+    const visited = new Array(points.length).fill(false);
+    const merged: Array<{ center: CircleCenter; radius: number }> = [];
+
+    for (let i = 0; i < points.length; i++) {
+        if (visited[i]) continue;
+
+        const stack = [i];
+        const clusterIndices: number[] = [];
+        visited[i] = true;
+
+        while (stack.length > 0) {
+            const current = stack.pop()!;
+            clusterIndices.push(current);
+
+            for (let j = 0; j < points.length; j++) {
+                if (visited[j]) continue;
+
+                const distance = getDistanceMeters(points[current], points[j]);
+                if (distance <= baseRadius * 2) {
+                    visited[j] = true;
+                    stack.push(j);
+                }
+            }
+        }
+
+        const clusterPoints = clusterIndices.map((index) => points[index]);
+        const center = {
+            lat: clusterPoints.reduce((sum, point) => sum + point.lat, 0) / clusterPoints.length,
+            lng: clusterPoints.reduce((sum, point) => sum + point.lng, 0) / clusterPoints.length,
+        };
+
+        const maxDistanceToCenter = clusterPoints.reduce((maxDistance, point) => {
+            const distance = getDistanceMeters(center, point);
+            return Math.max(maxDistance, distance);
+        }, 0);
+
+        merged.push({
+            center,
+            radius: baseRadius + maxDistanceToCenter,
+        });
+    }
+
+    return merged;
+}
+
+// --- Reusable Google Maps Circle Overlay ---
+function RadiusCircle({ center, radius, strokeColor, fillColor }: RadiusCircleProps) {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!map || typeof google === "undefined") return;
+
+        const circle = new google.maps.Circle({
+            map,
+            center,
+            radius,
+            strokeColor,
+            strokeOpacity: 0.7,
+            strokeWeight: 1.5,
+            fillColor,
+            fillOpacity: 0.15,
+        });
+
+        return () => {
+            circle.setMap(null);
+        };
+    }, [map, center, radius, strokeColor, fillColor]);
+
+    return null;
 }
 
 export default function AlertItemMap({ alerts, activeFilter, focusedAlert, onPinClick }: AlertItemMapProps) {
@@ -36,6 +146,12 @@ export default function AlertItemMap({ alerts, activeFilter, focusedAlert, onPin
             : item.hazardType === activeFilter)
     );
 
+    // --- Build Cluster Circles from Filtered Alert Pins ---
+    const mergedAlertCircles = useMemo(() => {
+        const points = filteredAlerts.map((alert) => ({ lat: alert.lat, lng: alert.lng }));
+        return mergeOverlappingCircles(points, ALERT_RADIUS_METERS);
+    }, [filteredAlerts]);
+
     // --- Map Center: Focused Alert > First Filtered > User Location > Borneo Default ---
     const defaultCenter = { lat: 1.5, lng: 113.0 };
     const mapCenter = focusedAlert
@@ -54,6 +170,17 @@ export default function AlertItemMap({ alerts, activeFilter, focusedAlert, onPin
                     defaultZoom={mapZoom}
                     mapId="DEMO_MAP_ID"
                 >
+                    {/* --- Merged Alert Radius Circles (Red) --- */}
+                    {mergedAlertCircles.map((circle, index) => (
+                        <RadiusCircle
+                            key={`alert-circle-cluster-${index}`}
+                            center={circle.center}
+                            radius={circle.radius}
+                            strokeColor="#EF4444"
+                            fillColor="#EF4444"
+                        />
+                    ))}
+
                     {/* --- Alert Markers (Red Pins) --- */}
                     {filteredAlerts.map((alert, index) => (
                         <AdvancedMarker
