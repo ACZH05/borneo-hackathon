@@ -14,6 +14,7 @@ export default function EmergencyDetailsComponent({
   medicalConditions,
   emergencyContactName,
   emergencyContactPhone,
+  emergencyContactGmail,
   homeAddress,
   qrCodeData,
 }: {
@@ -23,6 +24,7 @@ export default function EmergencyDetailsComponent({
   medicalConditions: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  emergencyContactGmail: string;
   homeAddress: string;
   qrCodeData: string;
 }) {
@@ -148,6 +150,15 @@ export default function EmergencyDetailsComponent({
                 </p>
                 <p className="mt-1 wrap-break-word text-sm font-bold text-textBlack">
                   {emergencyContactPhone || "-"}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-textGrey/10 bg-background p-4 sm:col-span-2">
+                <p className="text-[11px] font-semibold tracking-wide text-textGrey/80">
+                  EMERGENCY CONTACT GMAIL
+                </p>
+                <p className="mt-1 wrap-break-word text-sm font-bold text-textBlack">
+                  {emergencyContactGmail || "-"}
                 </p>
               </div>
 

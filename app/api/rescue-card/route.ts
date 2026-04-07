@@ -46,6 +46,7 @@ export async function POST(request: Request) {
       medicalConditions,
       emergencyContactName,
       emergencyContactPhone,
+      emergencyContactGmail,
       homeLat,
       homeLng,
       homeAddress
@@ -89,8 +90,9 @@ export async function POST(request: Request) {
                         🏥 MEDICAL: ${medicalConditions || 'NONE'}
 
                         📞 EMERGENCY CONTACT:
-                        ${emergencyContactName}
-                        ${emergencyContactPhone}
+                        Name: ${emergencyContactName || 'N/A'}
+                        Phone: ${emergencyContactPhone || 'N/A'}
+                        Gmail: ${emergencyContactGmail || 'N/A'}
 
                         📍 HOME:
                         ${formattedAddress}
@@ -117,7 +119,7 @@ export async function POST(request: Request) {
       where: { userId: user.id },
       update: {
         bloodType, allergies, medicalConditions,
-        emergencyContactName, emergencyContactPhone,
+        emergencyContactName, emergencyContactPhone, emergencyContactGmail,
         homeLat, homeLng,
         homeAddress: formattedAddress, // Saving the real address!
         shareableUrl: googleMapsUrl,
@@ -126,7 +128,7 @@ export async function POST(request: Request) {
       create: {
         userId: user.id,
         bloodType, allergies, medicalConditions,
-        emergencyContactName, emergencyContactPhone,
+        emergencyContactName, emergencyContactPhone, emergencyContactGmail,
         homeLat, homeLng,
         homeAddress: formattedAddress, // Saving the real address!
         shareableUrl: googleMapsUrl,

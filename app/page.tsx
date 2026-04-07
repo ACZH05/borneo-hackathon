@@ -16,6 +16,7 @@ type RescueCardData = {
   medicalConditions?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyContactGmail?: string;
   homeAddress?: string;
   qrCodeData?: string;
 };
@@ -105,6 +106,7 @@ export default function HomePage() {
           medicalConditions={rescueCard?.medicalConditions ?? ""}
           emergencyContactName={rescueCard?.emergencyContactName ?? ""}
           emergencyContactPhone={rescueCard?.emergencyContactPhone ?? ""}
+          emergencyContactGmail={rescueCard?.emergencyContactGmail ?? ""}
           homeAddress={rescueCard?.homeAddress ?? ""}
           qrCodeData={rescueCard?.qrCodeData ?? ""}
         />

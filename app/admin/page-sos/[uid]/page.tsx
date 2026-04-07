@@ -17,6 +17,7 @@ function Page({ params }: { params: Promise<{ uid: string }> }) {
   const [medicalConditions, setMedicalConditions] = useState("");
   const [emergencyContactName, setEmergencyContactName] = useState("");
   const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+  const [emergencyContactGmail, setEmergencyContactGmail] = useState("");
   const [homeAddress, setHomeAddress] = useState("");
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [reportLocation, setReportLocation] = useState<{
@@ -113,6 +114,7 @@ function Page({ params }: { params: Promise<{ uid: string }> }) {
         medicalConditions,
         emergencyContactName,
         emergencyContactPhone,
+        emergencyContactGmail,
         homeAddress,
       } = data?.rescueCard;
       setBloodType(bloodType);
@@ -120,6 +122,7 @@ function Page({ params }: { params: Promise<{ uid: string }> }) {
       setMedicalConditions(medicalConditions);
       setEmergencyContactName(emergencyContactName);
       setEmergencyContactPhone(emergencyContactPhone);
+      setEmergencyContactGmail(emergencyContactGmail);
       setHomeAddress(homeAddress);
     };
 
@@ -159,6 +162,7 @@ function Page({ params }: { params: Promise<{ uid: string }> }) {
               medicalConditions={medicalConditions}
               emergencyContactName={emergencyContactName}
               emergencyContactPhone={emergencyContactPhone}
+              emergencyContactGmail={emergencyContactGmail}
               homeAddress={homeAddress}
             />
           </div>

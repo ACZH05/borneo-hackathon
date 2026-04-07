@@ -47,6 +47,7 @@ model RescueCard {
   medicalConditions     String?  // e.g., "Asthma, Type 1 Diabetes"
   emergencyContactName  String?
   emergencyContactPhone String?
+  emergencyContactGmail String?
   homeLat               Float?   // Their safe home location
   homeLng               Float?
   homeAddress           String?
