@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BodyView, EmergencyPlan } from "./types";
 
 type ChecklistDrawerProps = {
@@ -23,6 +23,34 @@ export default function ChecklistDrawer({
     onOpenPlan,
 }: ChecklistDrawerProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [fabBottom, setFabBottom] = useState(16);
+
+    {/* --- Dynamically Calculate FAB Position to Avoid Footer Overlap --- */}
+    {/* --- Keep FAB Fixed While Lifting it above footer when needed --- */}
+    useEffect(() => {
+        const updateFabBottom = () => {
+            const footer = document.getElementById("site-footer");
+            if (!footer) {
+                setFabBottom(16);
+                return;
+            }
+
+            const footerRect = footer.getBoundingClientRect();
+            const overlap = Math.max(0, window.innerHeight - footerRect.top);
+
+            // 16px default gap from viewport bottom, plus any overlap with footer.
+            setFabBottom(16 + overlap);
+        };
+
+        updateFabBottom();
+        window.addEventListener("scroll", updateFabBottom, { passive: true });
+        window.addEventListener("resize", updateFabBottom);
+
+        return () => {
+            window.removeEventListener("scroll", updateFabBottom);
+            window.removeEventListener("resize", updateFabBottom);
+        };
+    }, []);
 
     const onSelectInitial = () => {
         onOpenInitial();
@@ -55,7 +83,10 @@ export default function ChecklistDrawer({
             {/* This button is fixed at the bottom-right corner on mobile, and hidden on desktop. It opens the drawer when clicked. */}
             <button 
                 onClick={() => setIsOpen(true)}
-                className="xl:hidden absolute bottom-4 right-4 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                className={`
+                    xl:hidden fixed right-4 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-primary text-white shadow-2xl hover:scale-105 active:scale-95 transition-all
+                `}
+                style={{ bottom: `${fabBottom}px` }} // Dynamically adjust bottom position to avoid footer overlap.
             >
                 <span className="material-symbols-outlined">checklist</span>
             </button>

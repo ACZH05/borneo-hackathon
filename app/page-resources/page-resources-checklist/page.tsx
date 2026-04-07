@@ -189,7 +189,7 @@ export default function ResourcesChecklistPage() {
   if (!isLoggedIn) return <div className="flex items-center justify-center h-full">Please log in to access the checklist.</div>;
 
   return (
-    <div className="relative flex flex-row h-[calc(100vh-160px)] overflow-hidden">
+    <div className="relative flex flex-row xl:h-[calc(100vh-160px)] overflow-hidden">
       <ChecklistDrawer
         activeView={activeView}
         history={history}
