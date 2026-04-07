@@ -19,6 +19,15 @@ type SubmissionStatus =
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
+type SosResponse = {
+  message?: string;
+  emergencyContactNotification?: {
+    email?: string | null;
+    notified?: boolean;
+    error?: string | null;
+  };
+};
+
 export default function ButtonListComponent({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [hazard, setHazard] = useState("");
@@ -128,21 +137,30 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
       }
 
       const responseData: unknown = await response.json();
+      const sosResponse =
+        responseData && typeof responseData === "object"
+          ? (responseData as SosResponse)
+          : null;
       const successMessage =
-        responseData &&
-        typeof responseData === "object" &&
-        "message" in responseData &&
-        typeof (responseData as { message?: unknown }).message === "string"
-          ? (responseData as { message: string }).message
+        sosResponse &&
+        typeof sosResponse.message === "string"
+          ? sosResponse.message
           : "SOS signal sent successfully.";
+      const emergencyContactStatus =
+        sosResponse?.emergencyContactNotification?.email
+          ? sosResponse.emergencyContactNotification.notified
+            ? `Emergency contact notified at ${sosResponse.emergencyContactNotification.email}.`
+            : `Emergency contact email failed${sosResponse.emergencyContactNotification.error ? `: ${sosResponse.emergencyContactNotification.error}` : "."}`
+          : "No approved emergency contact Gmail available.";
+      const combinedSuccessMessage = `${successMessage} ${emergencyContactStatus}`;
 
-      console.log(successMessage);
+      console.log(combinedSuccessMessage);
       setIsOpen(false);
       setHazard("");
       setDescription("");
       setSubmissionStatus({
         type: "success",
-        message: successMessage,
+        message: combinedSuccessMessage,
       });
     } catch (error) {
       console.error("Failed to send SOS request:", error);

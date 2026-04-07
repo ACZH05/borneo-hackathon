@@ -21,6 +21,13 @@ interface RescueCard {
   shareableUrl?: string;
 }
 
+interface PendingEmergencyContactConsent {
+  email: string;
+  status: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 interface UserProfile {
   id: string;
   name: string;
@@ -28,6 +35,7 @@ interface UserProfile {
   role: string;
   regionCode: string;
   rescueCard?: RescueCard; // Added Rescue Card Type!
+  pendingEmergencyContactConsent?: PendingEmergencyContactConsent | null;
 }
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -160,10 +168,12 @@ function EditDrawer({ user, onClose, onSave }: { user: UserProfile; onClose: () 
 // ─── Edit Medical Rescue Card Drawer ───────────────────────────────────────────
 function EditRescueCardDrawer({
   card,
+  pendingEmergencyContactConsent,
   onClose,
   onSave,
 }: {
   card?: RescueCard;
+  pendingEmergencyContactConsent?: PendingEmergencyContactConsent | null;
   onClose: () => void;
   onSave: (data: any) => Promise<void>;
 }) {
@@ -173,7 +183,7 @@ function EditRescueCardDrawer({
     medicalConditions: card?.medicalConditions || "",
     emergencyContactName: card?.emergencyContactName || "",
     emergencyContactPhone: card?.emergencyContactPhone || "",
-    emergencyContactGmail: card?.emergencyContactGmail || "",
+    emergencyContactGmail: pendingEmergencyContactConsent?.email || card?.emergencyContactGmail || "",
     homeAddress: card?.homeAddress || "",
     homeLat: card?.homeLat ?? null,
     homeLng: card?.homeLng ?? null,
@@ -373,6 +383,11 @@ function EditRescueCardDrawer({
               placeholder="contact@gmail.com"
               className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm"
             />
+            {pendingEmergencyContactConsent?.email && (
+              <p className="text-xs text-amber-700">
+                Pending approval for {pendingEmergencyContactConsent.email}. It will only be saved after the owner approves by email.
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -449,6 +464,37 @@ export default function ProfilePage() {
   const [rescueEditOpen, setRescueEditOpen] = useState(false);
   const [toast, setToast]           = useState("");
 
+  const handleShareQr = async () => {
+    if (!user?.rescueCard?.qrCodeData) {
+      setToast("QR code unavailable.");
+      setTimeout(() => setToast(""), 3500);
+      return;
+    }
+
+    try {
+      const response = await fetch(user.rescueCard.qrCodeData);
+      const blob = await response.blob();
+      const file = new File([blob], "emergency-qr.png", { type: blob.type || "image/png" });
+
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+        await navigator.share({
+          title: "Emergency QR Code",
+          text: "Emergency details QR code",
+          files: [file],
+        });
+        setToast("QR code shared.");
+      } else {
+        await navigator.clipboard.writeText(user.rescueCard.qrCodeData);
+        setToast("QR code copied to clipboard.");
+      }
+    } catch (error) {
+      console.error("Failed to share QR code:", error);
+      setToast("Unable to share QR code.");
+    }
+
+    setTimeout(() => setToast(""), 3500);
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -495,10 +541,13 @@ export default function ProfilePage() {
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
     
-    // Update local state with the new rescue card so the QR code appears instantly
-    setUser({ ...user, rescueCard: data.rescueCard });
+    setUser({
+      ...user,
+      rescueCard: data.rescueCard,
+      pendingEmergencyContactConsent: data.pendingEmergencyContactConsent ?? null,
+    });
     setRescueEditOpen(false);
-    setToast("Rescue Card updated and QR generated!");
+    setToast(data.pendingConsent ? "Consent email sent. Gmail will be saved after approval." : "Rescue Card updated and QR generated!");
     setTimeout(() => setToast(""), 3500);
   };
 
@@ -586,7 +635,16 @@ export default function ProfilePage() {
             {/* QR Code Card (Only shows if QR code exists) */}
             {user.rescueCard?.qrCodeData && (
               <div className="bg-surface border border-red-500/20 shadow-sm rounded-3xl p-6 flex flex-col items-center gap-4">
-                <h3 className="text-sm text-red-600 font-bold uppercase tracking-widest">Emergency QR</h3>
+                <div className="flex w-full items-center justify-between gap-3">
+                  <h3 className="text-sm text-red-600 font-bold uppercase tracking-widest">Emergency QR</h3>
+                  <button
+                    type="button"
+                    onClick={handleShareQr}
+                    className="rounded-lg border border-red-500/20 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100"
+                  >
+                    Share
+                  </button>
+                </div>
                 <div className="bg-white p-2 rounded-xl border border-gray-200">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={user.rescueCard.qrCodeData} alt="Medical QR Code" className="w-48 h-48" />
@@ -635,6 +693,7 @@ export default function ProfilePage() {
                 <InfoRow label="Emergency Contact" value={user.rescueCard?.emergencyContactName || "Not Set"} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>} />
                 <InfoRow label="Contact Phone" value={user.rescueCard?.emergencyContactPhone || "Not Set"} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>} />
                 <InfoRow label="Contact Gmail" value={user.rescueCard?.emergencyContactGmail || "Not Set"} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>} />
+                <InfoRow label="Consent Status" value={user.pendingEmergencyContactConsent?.email ? `Pending approval for ${user.pendingEmergencyContactConsent.email}` : "Approved / Not pending"} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>} />
                 <div className="md:col-span-2">
                   <InfoRow label="Home Base Location" value={user.rescueCard?.homeAddress || (user.rescueCard?.homeLat ? `${user.rescueCard.homeLat}, ${user.rescueCard.homeLng}` : "Not Set")} icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>} />
                 </div>
@@ -646,7 +705,7 @@ export default function ProfilePage() {
       </div>
 
       {editOpen && <EditDrawer user={user} onClose={() => setEditOpen(false)} onSave={handleSaveProfile} />}
-      {rescueEditOpen && <EditRescueCardDrawer card={user.rescueCard} onClose={() => setRescueEditOpen(false)} onSave={handleSaveRescueCard} />}
+      {rescueEditOpen && <EditRescueCardDrawer card={user.rescueCard} pendingEmergencyContactConsent={user.pendingEmergencyContactConsent} onClose={() => setRescueEditOpen(false)} onSave={handleSaveRescueCard} />}
     </>
   );
 }
