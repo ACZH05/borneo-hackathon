@@ -2,7 +2,7 @@
 
 export default function Footer() {
   return (
-    <footer className="sticky bottom-0 left-0 right-0 flex flex-wrap gap-6 items-center justify-between bg-surface border-t border-foreground/20 shadow-sm min-w-screen px-8 py-4">
+    <footer className="flex flex-wrap gap-6 items-center justify-between bg-surface border-t border-foreground/20 shadow-sm w-full px-8 py-4">
       <div className="flex items-center gap-3">
         {/* --- Logo --- */}
         <div className="flex items-center justify-center rounded-full bg-secondary/20 h-10 w-10">
