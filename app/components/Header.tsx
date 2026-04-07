@@ -177,14 +177,11 @@ export default function Header() {
         <Drawer navLinks={navLinks} />
         {/* --- Logo --- */}
         <div className="flex items-center justify-center rounded-full bg-secondary/20 h-10 w-10">
-          <span className="material-symbols-outlined text-2xl text-primary">
-            spa
-          </span>{" "}
-          {/* Logo Icon from Google Material Symbols */}
+          <img src="/favicon.ico" alt="logo" className="h-full w-full" />
         </div>
         {/* --- Title and Subtitle --- */}
         <div className="flex flex-col">
-          <span className="text-xl font-extrabold text-primary">BorNEO AI</span>
+          <span className="text-xl font-extrabold text-primary">HACHIMI AI</span>
           <span className="text-xs font-semibold text-textGrey">
             COMMUNITY RESILIENCE
           </span>
