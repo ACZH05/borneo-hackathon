@@ -34,11 +34,9 @@ function getEmergencyContactNotificationStatus(error: unknown) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // 1. Add userId to the extracted body data
     const { userId, lat, lng, hazardType, description } = body;
 
-    // 2. Require the userId to be present
-    if (!userId || !lat || !lng || !description) {
+    if (!lat || !lng || !description) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -91,14 +89,25 @@ export async function POST(request: Request) {
       console.error("Gemini Triage failed, but saving report anyway:", aiError);
     }
 
-    // 4. Default User Setup 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { rescueCard: true },
-    });
-    
+    let user = null;
+    let isGuestReporter = false;
+
+    if (userId) {
+      user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { rescueCard: true },
+      });
+    }
+
     if (!user) {
-      return NextResponse.json({ error: "User not found. Please log in." }, { status: 404 });
+      isGuestReporter = true;
+      user = await prisma.user.create({
+        data: {
+          name: "Guest SOS Reporter",
+          role: "resident",
+        },
+        include: { rescueCard: true },
+      });
     }
 
     // 5. Save to Database WITH the Gemini AI data
@@ -166,7 +175,9 @@ export async function POST(request: Request) {
       }
     }
 
-    const message = emergencyContactGmail
+    const message = isGuestReporter
+      ? "SOS Report analyzed and saved. Admin dashboard updated."
+      : emergencyContactGmail
       ? emergencyContactNotified
         ? "SOS Report analyzed and saved. Admin dashboard updated and emergency contact notified."
         : "SOS Report analyzed and saved. Admin dashboard updated, but emergency contact email could not be delivered."
@@ -176,11 +187,14 @@ export async function POST(request: Request) {
       success: true, 
       message,
       report,
-      emergencyContactNotification: {
-        email: emergencyContactGmail ?? null,
-        notified: emergencyContactNotified,
-        error: emergencyContactNotificationError,
-      },
+      emergencyContactNotification: isGuestReporter
+        ? null
+        : {
+            email: emergencyContactGmail ?? null,
+            notified: emergencyContactNotified,
+            error: emergencyContactNotificationError,
+          },
+      isGuestReporter,
     }, { status: 201 });
 
   } catch (error) {

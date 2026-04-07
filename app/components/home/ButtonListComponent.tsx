@@ -25,7 +25,8 @@ type SosResponse = {
     email?: string | null;
     notified?: boolean;
     error?: string | null;
-  };
+  } | null;
+  isGuestReporter?: boolean;
 };
 
 export default function ButtonListComponent({ userId }: { userId: string }) {
@@ -87,15 +88,6 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
       return;
     }
 
-    if (!userId) {
-      console.error("Missing userId for SOS request");
-      setSubmissionStatus({
-        type: "error",
-        message: "Unable to send SOS signal because your session is missing. Please log in again.",
-      });
-      return;
-    }
-
     if (!hazard) {
       console.error("Hazard type is required for SOS request");
       setSubmissionStatus({
@@ -117,7 +109,7 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId,
+          userId: userId || null,
           lat: location.lat,
           lng: location.lng,
           hazardType: hazard,
@@ -147,12 +139,16 @@ export default function ButtonListComponent({ userId }: { userId: string }) {
           ? sosResponse.message
           : "SOS signal sent successfully.";
       const emergencyContactStatus =
-        sosResponse?.emergencyContactNotification?.email
+        sosResponse?.isGuestReporter
+          ? ""
+          : sosResponse?.emergencyContactNotification?.email
           ? sosResponse.emergencyContactNotification.notified
             ? `Emergency contact notified at ${sosResponse.emergencyContactNotification.email}.`
             : `Emergency contact email failed${sosResponse.emergencyContactNotification.error ? `: ${sosResponse.emergencyContactNotification.error}` : "."}`
           : "No approved emergency contact Gmail available.";
-      const combinedSuccessMessage = `${successMessage} ${emergencyContactStatus}`;
+      const combinedSuccessMessage = [successMessage, emergencyContactStatus]
+        .filter(Boolean)
+        .join(" ");
 
       console.log(combinedSuccessMessage);
       setIsOpen(false);
