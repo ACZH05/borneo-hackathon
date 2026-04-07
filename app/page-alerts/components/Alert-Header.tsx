@@ -213,13 +213,20 @@ export default function AlertHeader() {
 
                 /* --- Alert Map --- */
                 : <AlertItemMap alerts={filteredAlerts} activeFilter={activeFilter} focusedAlert={focusedAlert} onPinClick={(alert) => {
-                    const key = alert.id || `${alert.lat}-${alert.lng}-${alerts.indexOf(alert)}`;
+                    const filteredIndex = filteredAlerts.findIndex((item) => item.id === alert.id);
+                    const fallbackIndex = filteredAlerts.findIndex((item) => item.lat === alert.lat && item.lng === alert.lng && item.title === alert.title);
+                    const alertIndex = filteredIndex >= 0 ? filteredIndex : fallbackIndex;
+                    const targetPage = alertIndex >= 0 ? Math.floor(alertIndex / ALERTS_PER_PAGE) + 1 : 1;
+                    const key = alert.id || `${alert.lat}-${alert.lng}-${alertIndex >= 0 ? alertIndex : 0}`;
+
                     setDisplayMode("list");
-                    setFocusedAlert(null); // Scroll to the alert card after switching to list mode
+                    setFocusedAlert(null);
+                    setCurrentPage(targetPage);
+
                     setTimeout(() => {
                         const el = alertRefs.current.get(key);
                         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }, 100);
+                    }, 150);
                 }} />
             }
         </div>
