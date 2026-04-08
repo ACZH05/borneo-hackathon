@@ -11,23 +11,23 @@ import { useAlertsData } from "@/app/api/alert/util/useAlertsData";
 import Skeleton from "@/app/components/Skeleton";
 
 const ALERTS_PER_PAGE = 5;
-const MALAYSIA_STATE_OPTIONS = [
-    "Johor",
-    "Kedah",
-    "Kelantan",
-    "Kuala Lumpur",
-    "Labuan",
-    "Melaka",
-    "Negeri Sembilan",
-    "Pahang",
-    "Perak",
-    "Perlis",
-    "Pulau Pinang",
-    "Putrajaya",
-    "Sabah",
-    "Sarawak",
-    "Selangor",
-    "Terengganu",
+const MALAYSIA_STATE_OPTIONS: { label: string, flag: string }[] = [
+    { label: "Johor", flag: "/assets/flag-johor.svg" },
+    { label: "Kedah", flag: "/assets/flag-kedah.svg" },
+    { label: "Kelantan", flag: "/assets/flag-kelantan.svg" },
+    { label: "Kuala Lumpur", flag: "/assets/flag-kuala-lumpur.svg" },
+    { label: "Labuan", flag: "/assets/flag-labuan.svg" },
+    { label: "Melaka", flag: "/assets/flag-melaka.svg" },
+    { label: "Negeri Sembilan", flag: "/assets/flag-negeri-sembilan.svg" },
+    { label: "Pahang", flag: "/assets/flag-pahang.svg" },
+    { label: "Perak", flag: "/assets/flag-perak.svg" },
+    { label: "Perlis", flag: "/assets/flag-perlis.svg" },
+    { label: "Pulau Pinang", flag: "/assets/flag-pulau-pinang.svg" },
+    { label: "Putrajaya", flag: "/assets/flag-putrajaya.svg" },
+    { label: "Sabah", flag: "/assets/flag-sabah.svg" },
+    { label: "Sarawak", flag: "/assets/flag-sarawak.svg" },
+    { label: "Selangor", flag: "/assets/flag-selangor.svg" },
+    { label: "Terengganu", flag: "/assets/flag-terengganu.svg" },
 ];
 
 export default function AlertHeader() {
