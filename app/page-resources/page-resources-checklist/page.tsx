@@ -186,7 +186,7 @@ export default function ResourcesChecklistPage() {
       </div>
     );
   }
-  if (!isLoggedIn) return <div className="flex items-center justify-center h-full">Please log in to access the checklist.</div>;
+  if (!isLoggedIn) return <div className="flex items-center justify-center h-full p-10">Please log in to access the checklist.</div>;
 
   return (
     <div className="relative flex flex-row xl:h-[calc(100vh-160px)] overflow-hidden">
