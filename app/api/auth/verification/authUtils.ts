@@ -1,28 +1,25 @@
 "use client";
 
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 import { requestUserLocation } from "@/app/lib/permission/location";
 import { supabase } from "@/app/lib/database/supabase";
 
-// --- Login Status Listener ---
-// Once the user is redirected back from the magic link, this component will detect the token in the URL, store it and sync the user info to our database.
+// ==========================================
+// 1. AUTH LISTENER (Magic Link & Redirects)
+// ==========================================
 export default function AuthListener() {
   useEffect(() => {
     const syncUser = async () => {
-      // 1. Check if there's an access token (already login or not) in the URL hash (after redirect from magic link).
       const hash = window.location.hash;
       if (!hash || !hash.includes("access_token")) return;
 
-      // 2. Extract the token from the URL hash.
       const params = new URLSearchParams(hash.replace("#", "?"));
       const token = params.get("access_token");
 
       if (token) {
-        // 3. Store the token in localStorage for Supabase client to use.
         localStorage.setItem("supabase.auth.token", token);
 
         try {
-          // 4. Fetch the user's info from Supabase using the token to authenticate.
           const userRes = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`, {
             headers: {
               "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,14 +29,13 @@ export default function AuthListener() {
           const userData = await userRes.json();
 
           if (userData?.id) {
-            // 5. Sync the user info to our Prisma database by calling our Next.js API route. (Must be done server-side to keep our database secure and prevent exposing credentials to the client.)
             await fetch("/api/auth/sync", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 id: userData.id,
                 email: userData.email,
-                name: "Resident" // Default name, can be updated later in user settings.
+                name: "Resident" // Existing users logging in via magic link
               })
             });
             console.log("User successfully synced to Prisma Database!");
@@ -47,107 +43,207 @@ export default function AuthListener() {
         } catch (error) {
           console.error("Failed to sync user:", error);
         } finally {
-          // 6. Clean up the URL by removing the token from the hash and show a success message.
           window.history.replaceState(null, "", window.location.pathname);
           alert("Login successful!");
-
-          // 7. Request location permission after successful login.
           requestUserLocation();
         }
       }
     };
 
-    // 8. Run the sync function when the component mounts to check for the token in the URL.
     syncUser(); 
   }, []);
 
-  return null; // This component doesn't need to display anything, it only works in the background.
+  return null;
 }
 
-// --- Check Authentication Status ---
-// Checks if the user is currently logged in by looking for the token in localStorage. 
-// This can be used across the app to conditionally render content based on login status.
+// ==========================================
+// 2. AUTH STATUS CHECKER
+// ==========================================
 export function AuthStatus() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
-    // 1. Look for the token in localStorage.
     const token = localStorage.getItem("supabase.auth.token");
-    
-    // 2. If token exists, user is logged in. Otherwise, they're not.
     if (token) {
       setIsLoggedIn(true);
     } else {
       setIsLoggedIn(false);
     }
-
     setIsLoading(false); 
   }, []);
 
   return { isLoggedIn, isLoading }; 
 }
 
-// --- Login ---
+// ==========================================
+// 3. MAIN LOGIN & SIGNUP HOOK
+// ==========================================
 export function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // --- API Keys from Environment Variables ---
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  // --- Magic Link Authentication Function ---
+  const headers = {
+    "Content-Type": "application/json",
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+  };
+
+  // --- A. MAGIC LINK (STRICTLY LOGIN ONLY) ---
   const sendMagicLink = async (email: string) => {
     if (!email) return;
-    
-    setLoading(true); // Start loading state.
-    setMessage(null); // Clear previous messages.
+    setLoading(true); setMessage(null);
 
     try {
-      // 1. Send request to Supabase Auth API to send a magic link to the user's email.
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+      // 1. Ask Prisma if the user exists first!
+      const checkRes = await fetch("/api/auth/check", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY!,
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
-          email,
-          options: {
-            shouldCreateUser: true,
-            emailRedirectTo: `${window.location.origin}`,
-          }
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
       });
+      const { exists } = await checkRes.json();
 
-      // 2. Handle the response from Supabase.
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error_description || data.msg || "Failed to send link");
+      // 2. If they don't exist in Prisma, stop and show the error!
+      if (!exists) {
+        setMessage({ type: 'error', text: "Account not found. Please Sign Up first." });
+        return false;
       }
 
+      // 3. If they DO exist, tell Supabase to send the magic link
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: `${window.location.origin}`,
+        }
+      });
+
+      if (error) throw error;
+
       setMessage({ type: 'success', text: "Check your email for the magic link!" });
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "Failed to send link";
-      setMessage({ type: 'error', text: message });
+      return true;
+    } catch (error: any) {
+      setMessage({ type: 'error', text: "Failed to send link." });
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  return { sendMagicLink, loading, message };
+  // --- B. PASSWORD LOGIN ---
+  const loginWithPassword = async (email: string, password: string) => {
+    setLoading(true); setMessage(null);
+    try {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error_description || "Invalid login credentials.");
+
+      // Store token and trigger location (simulating what the listener does)
+      localStorage.setItem("supabase.auth.token", data.access_token);
+      requestUserLocation();
+      return { success: true, user: data.user, token: data.access_token };
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- C. SIGN UP (SEND OTP) ---
+  const signUpAndSendOtp = async (email: string, password: string, name: string) => {
+    setLoading(true); setMessage(null);
+    try {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          email,
+          password,
+          data: { full_name: name }
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error_description || data.msg || "Failed to sign up.");
+      
+      setMessage({ type: 'success', text: "Verification code sent to your email!" });
+      return true;
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- D. VERIFY OTP (COMPLETE SIGNUP) ---
+  const verifyOtpAndLogin = async (email: string, otp: string) => {
+    setLoading(true); setMessage(null);
+    try {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          type: "signup",
+          email,
+          token: otp
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error_description || data.msg || "Invalid verification code.");
+
+      // Store token
+      localStorage.setItem("supabase.auth.token", data.access_token);
+      requestUserLocation();
+      return { success: true, user: data.user, token: data.access_token };
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message });
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // --- E. FORGOT PASSWORD (SEND RESET LINK) ---
+  const sendPasswordReset = async (email: string) => {
+    setLoading(true); setMessage(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        // This is the page we will create next!
+        redirectTo: `${window.location.origin}/update-password`, 
+      });
+
+      if (error) throw error;
+
+      setMessage({ type: 'success', text: "Password reset link sent! Check your email." });
+      return true;
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || "Failed to send reset link." });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { sendMagicLink, loginWithPassword, signUpAndSendOtp, verifyOtpAndLogin, sendPasswordReset, loading, message, setMessage };
 }
 
-// --- Logout ---
+// ==========================================
+// 4. LOGOUT
+// ==========================================
 export const Logout = async () => {
-  // 1. Look for the token in localStorage.
   const token = localStorage.getItem("supabase.auth.token"); 
 
-  // 2. Ask Supabase client to clear any persisted auth session.
   try {
     await supabase.auth.signOut();
   } catch (error) {
@@ -156,7 +252,6 @@ export const Logout = async () => {
 
   if (token) {
     try {
-      // 3. Inform Supabase about the logout so it can invalidate the session on their end.
       await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/logout`, {
         method: "POST",
         headers: {
@@ -170,7 +265,6 @@ export const Logout = async () => {
     }
   }
 
-  // 4. Remove local auth tokens from browser storage.
   localStorage.removeItem("supabase.auth.token");
   Object.keys(localStorage).forEach((key) => {
     if (/^sb-.*-auth-token$/.test(key)) {
@@ -178,6 +272,5 @@ export const Logout = async () => {
     }
   });
 
-  // 5. Force navigation to resident home after logout.
   window.location.replace("/");
 };
