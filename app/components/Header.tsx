@@ -169,6 +169,8 @@ export default function Header() {
     setNavBar();
   }, [isLoading, isLoggedIn, pathname, router, userId]);
 
+  if (pathname === "/page-login") return null;
+
   return (
     <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm w-full px-8 py-4">
       {/* --- Left Side --- */}
