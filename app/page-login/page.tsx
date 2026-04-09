@@ -91,7 +91,7 @@ const FormContent = ({
         <div>
           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Email Address</label>
           <div className="flex gap-2">
-            <input type="email" placeholder="name@company.com" className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all" />
+            <input type="email" placeholder="HachimiAI@gmail.com" className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all" />
             {!isLoginMode && (
               <button type="button" className="bg-[#183d2e]/10 hover:bg-[#183d2e]/20 text-[#183d2e] text-xs font-bold px-4 rounded-xl transition-all whitespace-nowrap active:scale-95">
                 Send OTP
