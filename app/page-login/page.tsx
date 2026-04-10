@@ -90,14 +90,21 @@ const FormContent = ({
       // 2. PASSWORD LOGIN
       else {
         const res = await loginWithPassword(email, password);
-        if (res.success) {
-          // Sync existing user to DB (Doesn't overwrite their name due to Prisma upsert logic)
+        
+        // 🚨 Just add "&& res.user" right here!
+        if (res.success && res.user) { 
+          // Sync existing user to DB
           await fetch("/api/auth/sync", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id: res.user.id, email: res.user.email, name: "Resident" })
           });
-          window.location.replace("/");
+          
+          // Show the alert and wait 1.5 seconds before changing pages!
+          setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 1500);
         }
       }
     } else {

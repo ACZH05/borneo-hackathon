@@ -137,19 +137,20 @@ export function Login() {
   const loginWithPassword = async (email: string, password: string) => {
     setLoading(true); setMessage(null);
     try {
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ email, password })
+      // 1. Tell the official Supabase client to log us in
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error_description || "Invalid login credentials.");
+      if (error) throw new Error(error.message || "Invalid login credentials.");
 
-      // Store token and trigger location (simulating what the listener does)
-      localStorage.setItem("supabase.auth.token", data.access_token);
-      requestUserLocation();
-      return { success: true, user: data.user, token: data.access_token };
+      // 2. 🚨 THE FIX: Manually save the custom token for your AuthListener!
+      if (data.session) {
+        localStorage.setItem("supabase.auth.token", data.session.access_token);
+      }
+
+      return { success: true, user: data.user };
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
       return { success: false };
@@ -213,14 +214,14 @@ export function Login() {
       setLoading(false);
     }
   };
-  
+
   // --- E. FORGOT PASSWORD (SEND RESET LINK) ---
   const sendPasswordReset = async (email: string) => {
     setLoading(true); setMessage(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         // This is the page we will create next!
-        redirectTo: `${window.location.origin}/update-password`, 
+        redirectTo: `${window.location.origin}/page-resetPassword`, 
       });
 
       if (error) throw error;
