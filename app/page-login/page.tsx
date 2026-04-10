@@ -203,7 +203,7 @@ const FormContent = ({
         
         {/* 1. Sign Up Field (Full Name) */}
         {!isLoginMode && (
-          <div className="flex gap-3">
+          <div className="flex gap-3 order-1">
             <div className="flex-1">
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Full Name</label>
               <input 
@@ -218,8 +218,8 @@ const FormContent = ({
           </div>
         )}
 
-        {/* 2. Email & OTP Button */}
-        <div>
+        {/* 2. Email & OTP Button (Order dynamically swaps!) */}
+        <div className={isLoginMode ? "order-1" : "order-3"}>
           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Email Address</label>
           <div className="flex gap-2">
             <input 
@@ -245,7 +245,7 @@ const FormContent = ({
 
         {/* 3. Verification Code (Only on Sign Up) */}
         {!isLoginMode && (
-          <div>
+          <div className="order-4">
             <div className="flex justify-between items-center pr-3 mb-1">
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 block">Verification Code</label>
               <span className="text-[10px] font-semibold text-gray-400">Check your inbox</span>
@@ -261,9 +261,9 @@ const FormContent = ({
           </div>
         )}
 
-        {/* 4. Passwords (Side-by-Side during Sign Up) */}
+        {/* 4. Passwords (Side-by-Side during Sign Up, stacked during Login) */}
         {(!isLoginMode || loginMethod === "password") && (
-          <div className={`flex w-full ${!isLoginMode ? "gap-3" : "flex-col"}`}>
+          <div className={`flex w-full order-2 ${!isLoginMode ? "gap-3" : "flex-col"}`}>
             
             <div className="flex-1">
               <div className="flex justify-between items-center pr-3 mb-1">
@@ -341,6 +341,7 @@ const FormContent = ({
             
           </div>
         )}
+        
       </div>
 
       {/* Main Action Button */}
