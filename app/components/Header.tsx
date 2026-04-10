@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { JSX, useEffect, useMemo, useState } from "react";
 import { AuthStatus, Logout } from "@/app/api/auth/verification/authUtils";
-import AuthWindow from "@/app/components/Auth-Window";
 import { useUserContext } from "../provider/UserIdProvider";
 
 type NavSubLink = {
@@ -121,10 +120,8 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [isAuthWindowOpen, setIsAuthWindowOpen] = useState(false); // State to control the visibility of the login window.
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
-  const [searchItems, setSearchItems] =
-    useState<SearchItem[]>(residentSearchItems);
+  const [searchItems, setSearchItems] = useState<SearchItem[]>(residentSearchItems);
   const { isLoggedIn, isLoading } = AuthStatus(); // Store the login state of the user.
 
   const { userId } = useUserContext();
@@ -176,7 +173,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 flex flex-wrap gap-4 items-center justify-between bg-surface shadow-sm w-full px-8 py-4">
       {/* --- Left Side --- */}
       <div className="flex items-center justify-center gap-3">
-        {/* --- Drawer for Mobile --- */} {/* Show only on mobile. */}
+        {/* --- Drawer for Mobile --- */}
         <Drawer navLinks={navLinks} />
         {/* --- Logo --- */}
         <div className="flex items-center justify-center rounded-full bg-secondary/20 h-10 w-10">
@@ -190,7 +187,8 @@ export default function Header() {
           </span>
         </div>
       </div>
-      {/* --- Middle Navigation Links --- */} {/* Show only on desktop. */}
+      
+      {/* --- Middle Navigation Links --- */}
       <nav className="hidden xl:flex items-center gap-1 rounded-full bg-foreground/3 px-1 py-1 ml-auto">
         {navLinks.map((link) => (
           <div key={link.name} className="relative group">
@@ -229,21 +227,20 @@ export default function Header() {
           </div>
         ))}
       </nav>
-      {/* --- Right Side --- */}{" "}
-      {/* Always show on all screen sizes although wrapped. */}
+
+      {/* --- Right Side --- */}
       <div className="flex gap-4 ml-auto">
-        {/* --- Search Bar --- */} {/* Show only on desktop. */}
+        {/* --- Search Bar --- */}
         <SearchBar
           items={searchItems}
           pathname={pathname}
           onNavigate={(href) => router.push(href)}
           className="hidden xl:block"
         />
+        
         {/* --- Login / Logout Button --- */}
         {isLoading ? (
           // --- Skeleton Loader ---
-          // Avoid showing the login button until we know if the user is logged in or not to prevent confusion.
-          // Show a skeleton loader instead to indicate that we're checking the login status.
           <div className="w-22 h-9 rounded-full bg-foreground/10 animate-pulse"></div>
         ) : isLoggedIn ? (
           // --- Logout Button (If Already Login) ---
@@ -256,18 +253,14 @@ export default function Header() {
           </button>
         ) : (
           // --- Login Button (If Not Login) ---
-          <button
-            onClick={() => setIsAuthWindowOpen(true)}
+          <Link
+            href="/page-login"
             className="flex items-center justify-center rounded-full border-primary border-2 text-primary font-bold px-5 py-1 transition-all duration-300 hover:bg-primary hover:text-white"
           >
             Log in
-          </button>
+          </Link>
         )}
       </div>
-      <AuthWindow
-        isOpen={isAuthWindowOpen}
-        onClose={() => setIsAuthWindowOpen(false)}
-      />
     </header>
   );
 }
