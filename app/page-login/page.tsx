@@ -152,7 +152,7 @@ const FormContent = ({
     
       {/* Brand Header */}
       <div className="flex flex-col items-center mb-5 shrink-0">
-        <div className="flex items-center justify-center h-[80px] w-[80px] min-h-[80px] min-w-[80px] mb-2 shrink-0">
+        <div className="flex items-center justify-center h-20 w-20 min-h-20 min-w-20 mb-2 shrink-0">
           <img src="/favicon.ico" alt="logo" className="h-full w-full object-contain" />
         </div>
         <h1 className="text-2xl font-bold text-[#1a1a1a]">Hachimi AI</h1>
@@ -442,7 +442,7 @@ export default function LoginPage() {
       </div>
 
       {/* DESKTOP LAYOUT */}
-      <div className="hidden md:flex relative w-full max-w-[1000px] h-[720px] bg-white rounded-[2.5rem] shadow-xl overflow-hidden mt-12">
+      <div className="hidden md:flex relative w-full max-w-250 h-180 bg-white rounded-[2.5rem] shadow-xl overflow-hidden mt-12">
         
         {/* LEFT: Image Panel */}
         <div 
