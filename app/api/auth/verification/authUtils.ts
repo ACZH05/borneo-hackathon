@@ -159,28 +159,41 @@ export function Login() {
     }
   };
 
-  // --- C. SIGN UP (SEND OTP) ---
-  const signUpAndSendOtp = async (email: string, password: string, name: string) => {
-    setLoading(true); setMessage(null);
+  // --- C. SIGN UP & SEND OTP ---
+  const signUpAndSendOtp = async (email: string, password?: string, fullName?: string) => {
+    setLoading(true); 
+    setMessage(null);
     try {
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+     
+      const checkRes = await fetch("/api/auth/check-email", {
         method: "POST",
-        headers,
-        body: JSON.stringify({
-          email,
-          password,
-          data: { full_name: name }
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const checkData = await checkRes.json();
+
+    
+      if (checkData.exists) {
+        throw new Error("Account already exists. Please switch to 'Sign In' to log in.");
+      }
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            full_name: fullName,
+          }
+        }
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error_description || data.msg || "Failed to sign up.");
-      
-      setMessage({ type: 'success', text: "Verification code sent to your email!" });
-      return true;
+      if (error) throw new Error(error.message);
+
+      setMessage({ type: 'success', text: 'OTP sent! Check your inbox.' });
+      return { success: true };
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
-      return false;
+      return { success: false };
     } finally {
       setLoading(false);
     }
@@ -218,22 +231,36 @@ export function Login() {
     }
   };
   
-  // --- E. FORGOT PASSWORD (SEND RESET LINK) ---
+  // --- E. SEND PASSWORD RESET ---
   const sendPasswordReset = async (email: string) => {
-    setLoading(true); setMessage(null);
+    setLoading(true); 
+    setMessage(null);
     try {
+      // 🚨 1. Check your new secure API route first!
+      const checkRes = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const checkData = await checkRes.json();
+
+      // If the API says they don't exist, stop everything and throw an error!
+      if (!checkData.exists) {
+        throw new Error("Account not found. Please switch to 'Sign Up' to create an account.");
+      }
+
+      // 🚨 2. If they DO exist, proceed with the official Supabase reset
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // This is the page we will create next!
-        redirectTo: `${window.location.origin}/page-resetPassword`, 
+        redirectTo: `${window.location.origin}/page-resetPassword`, // Adjust to match your URL
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
-      setMessage({ type: 'success', text: "Password reset link sent! Check your email." });
-      return true;
+      setMessage({ type: 'success', text: 'Password reset link sent! Check your inbox.' });
+      return { success: true };
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || "Failed to send reset link." });
-      return false;
+      setMessage({ type: 'error', text: error.message });
+      return { success: false };
     } finally {
       setLoading(false);
     }

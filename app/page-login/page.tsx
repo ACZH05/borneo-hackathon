@@ -70,13 +70,15 @@ const FormContent = ({
       return;
     }
     
-    // If everything is good, tell Supabase to prep the account and send the email!
-    await signUpAndSendOtp(email, password, fullName);
 
-    // 🚨 NEW: Lock the inputs so they cannot change the password!
-    setIsOtpSent(true);
+    const res = await signUpAndSendOtp(email, password, fullName);
+
+   
+    if (res.success) {
+      setIsOtpSent(true);
+    }
+
   };
-
   // --- Action Handlers ---
   const handleForgotPassword = async () => {
     if (!email) {
@@ -198,116 +200,112 @@ const FormContent = ({
         </div>
       )}
 
+      
       {/* Inputs Stack */}
       <div className="w-full flex flex-col gap-2.5 mb-4">
         
-        {/* 1. Sign Up Field (Full Name) */}
-        {!isLoginMode && (
-          <div className="flex gap-3 order-1">
-            <div className="flex-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Full Name</label>
+        {isLoginMode ? (
+          /* =========================================
+             LOGIN MODE (Tab Order: Email -> Password)
+             ========================================= */
+          <>
+            {/* 1. Email (Login) */}
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Email Address</label>
               <input 
-                type="text" 
-                placeholder="Hachimi" 
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={isOtpSent}
-                className={`w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all ${isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
+                type="email" 
+                placeholder="HachimiAI@gmail.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all" 
               />
             </div>
-          </div>
-        )}
 
-        {/* 2. Email & OTP Button (Order dynamically swaps!) */}
-        <div className={isLoginMode ? "order-1" : "order-3"}>
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Email Address</label>
-          <div className="flex gap-2">
-            <input 
-              type="email" 
-              placeholder="HachimiAI@gmail.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={!isLoginMode && isOtpSent}
-              className={`w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all ${!isLoginMode && isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
-            />
-            {!isLoginMode && (
-              <button 
-                type="button" 
-                onClick={handleSendOtp}
-                disabled={loading || isOtpSent}
-                className="bg-[#183d2e]/10 hover:bg-[#183d2e]/20 text-[#183d2e] text-xs font-bold px-4 rounded-xl transition-all whitespace-nowrap active:scale-95 disabled:opacity-50"
-              >
-                {isOtpSent ? "OTP Sent ✓" : "Send OTP"}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 3. Verification Code (Only on Sign Up) */}
-        {!isLoginMode && (
-          <div className="order-4">
-            <div className="flex justify-between items-center pr-3 mb-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 block">Verification Code</label>
-              <span className="text-[10px] font-semibold text-gray-400">Check your inbox</span>
-            </div>
-            <input 
-              type="text" 
-              placeholder="Enter 8-digit OTP" 
-              maxLength={8} 
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all tracking-[0.2em] font-medium text-center" 
-            />
-          </div>
-        )}
-
-        {/* 4. Passwords (Side-by-Side during Sign Up, stacked during Login) */}
-        {(!isLoginMode || loginMethod === "password") && (
-          <div className={`flex w-full order-2 ${!isLoginMode ? "gap-3" : "flex-col"}`}>
-            
-            <div className="flex-1">
-              <div className="flex justify-between items-center pr-3 mb-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 block">Password</label>
-                {isLoginMode && (
-                <button 
+            {/* 2. Password (Login) */}
+            {loginMethod === "password" && (
+              <div className="flex w-full flex-col">
+                <div className="flex justify-between items-center pr-3 mb-1">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 block">Password</label>
+                  <button 
                     type="button" 
                     onClick={handleForgotPassword}
                     disabled={loading}
                     className="text-[10px] font-bold text-[#183d2e] hover:underline disabled:opacity-50"
-                >
+                  >
                     Forgot password?
-                </button>
-                )}
-            </div>
-              <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder={isLoginMode ? "••••••••" : "Min. 8 chars"} 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={!isLoginMode && isOtpSent}
-                  className={`w-full bg-gray-100 text-sm pl-4 pr-10 py-2.5 rounded-xl outline-none focus:ring-2 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
-                    !isLoginMode && password.length > 0 && !isPasswordLongEnough 
-                      ? "focus:ring-red-500 border border-red-500" 
-                      : "focus:ring-[#183d2e]/30 border border-transparent"
-                  } ${!isLoginMode && isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center outline-none"
-                >
-                  <span className="material-symbols-outlined text-[20px]">
-                    {showPassword ? "visibility_off" : "visibility"}
-                  </span>
-                </button>
+                  </button>
+                </div>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-gray-100 text-sm pl-4 pr-10 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 border border-transparent transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden" 
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center outline-none"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
               </div>
-              {!isLoginMode && password.length > 0 && !isPasswordLongEnough && (
-                <span className="text-[10px] text-red-500 font-semibold pl-3 mt-1 block">Too short</span>
-              )}
+            )}
+          </>
+        ) : (
+          
+          <>
+            {/* 1. Full Name */}
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Full Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Hachimi" 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isOtpSent}
+                  className={`w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all ${isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
+                />
+              </div>
             </div>
 
-            {!isLoginMode && (
+            {/* 2. Passwords */}
+            <div className="flex w-full gap-3">
+              <div className="flex-1">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Password</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Min. 8 chars" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isOtpSent}
+                    className={`w-full bg-gray-100 text-sm pl-4 pr-10 py-2.5 rounded-xl outline-none focus:ring-2 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
+                      password.length > 0 && !isPasswordLongEnough 
+                        ? "focus:ring-red-500 border border-red-500" 
+                        : "focus:ring-[#183d2e]/30 border border-transparent"
+                    } ${isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center outline-none"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
+                </div>
+                {password.length > 0 && !isPasswordLongEnough && (
+                  <span className="text-[10px] text-red-500 font-semibold pl-3 mt-1 block">Too short</span>
+                )}
+              </div>
+
               <div className="flex-1">
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Confirm Password</label>
                 <div className="relative">
@@ -337,11 +335,48 @@ const FormContent = ({
                   <span className="text-[10px] text-red-500 font-semibold pl-3 mt-1 block">Doesn't match</span>
                 )}
               </div>
-            )}
-            
-          </div>
+            </div>
+
+            {/* 3. Email & OTP Button */}
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 mb-1 block">Email Address</label>
+              <div className="flex gap-2">
+                <input 
+                  type="email" 
+                  placeholder="HachimiAI@gmail.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isOtpSent}
+                  className={`w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all ${isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
+                />
+                <button 
+                  type="button" 
+                  onClick={handleSendOtp}
+                  disabled={loading || isOtpSent}
+                  className="bg-[#183d2e]/10 hover:bg-[#183d2e]/20 text-[#183d2e] text-xs font-bold px-4 rounded-xl transition-all whitespace-nowrap active:scale-95 disabled:opacity-50"
+                >
+                  {isOtpSent ? "OTP Sent ✓" : "Send OTP"}
+                </button>
+              </div>
+            </div>
+
+            {/* 4. Verification Code */}
+            <div>
+              <div className="flex justify-between items-center pr-3 mb-1">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider pl-3 block">Verification Code</label>
+                <span className="text-[10px] font-semibold text-gray-400">Check your inbox</span>
+              </div>
+              <input 
+                type="text" 
+                placeholder="Enter 8-digit OTP" 
+                maxLength={8} 
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all tracking-[0.2em] font-medium text-center" 
+              />
+            </div>
+          </>
         )}
-        
       </div>
 
       {/* Main Action Button */}
