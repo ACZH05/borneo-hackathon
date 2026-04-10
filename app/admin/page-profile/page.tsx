@@ -263,32 +263,42 @@ export default function AdminProfilePage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
+        // 1. Grab our custom saved token first
+        const token = localStorage.getItem("supabase.auth.token");
+        
+        // 2. Force Supabase to use our token if it exists!
+        const { data: { user: authUser } } = token 
+          ? await supabase.auth.getUser(token) 
+          : await supabase.auth.getUser();
 
         if (!authUser) {
           setFetchError("Session not found. Please log in from the home page.");
-          setLoading(false);
-          return;
+          setLoading(false); return;
         }
 
-        const response = await fetch(`/api/user/${authUser.id}`);
-        const data = await response.json();
-
-        if (!data.success) {
-          setFetchError(data.error ?? "Could not load profile.");
-          return;
+        // 🚨 THE NEW FIX: Force Supabase to refresh the session and get the latest DB roles!
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError) {
+             console.warn("Session refresh failed, but continuing with existing user data.", refreshError);
         }
 
-        setUser(data.user);
-      } catch {
-        setFetchError("Network error. Please refresh the page.");
-      } finally {
-        setLoading(false);
-      }
+        // 🚨 Ensure we update our local storage with the shiny new token if it changed!
+        if (refreshData?.session?.access_token) {
+            localStorage.setItem("supabase.auth.token", refreshData.session.access_token);
+        }
+
+        // 3. Now fetch the actual user profile data from your API
+        const res  = await fetch(`/api/user/${authUser.id}`);
+        const data = await res.json();
+        
+        if (data.success) { 
+             setUser(data.user); 
+        } 
+        else { setFetchError(data.error ?? "Could not load profile."); }
+      } catch { setFetchError("Network error. Please refresh the page."); } 
+      finally { setLoading(false); }
     };
-
     load();
   }, []);
 

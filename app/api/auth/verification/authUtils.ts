@@ -150,7 +150,7 @@ export function Login() {
         localStorage.setItem("supabase.auth.token", data.session.access_token);
       }
 
-      return { success: true, user: data.user };
+      return { success: true, user: data.user, session: data.session };
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
       return { success: false };
@@ -190,23 +190,26 @@ export function Login() {
   const verifyOtpAndLogin = async (email: string, otp: string) => {
     setLoading(true); setMessage(null);
     try {
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          type: "signup",
-          email,
-          token: otp
-        })
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'signup' 
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error_description || data.msg || "Invalid verification code.");
+      if (error) throw new Error(error.message || "Invalid verification code.");
 
-      // Store token
-      localStorage.setItem("supabase.auth.token", data.access_token);
+      // 🚨 THE CRITICAL FIX: 
+      // Force the Supabase SDK to officially save this session so it survives a browser refresh!
+      if (data.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+      }
+
       requestUserLocation();
-      return { success: true, user: data.user, token: data.access_token };
+      
+      return { success: true, user: data.user, session: data.session };
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
       return { success: false };
@@ -214,7 +217,7 @@ export function Login() {
       setLoading(false);
     }
   };
-
+  
   // --- E. FORGOT PASSWORD (SEND RESET LINK) ---
   const sendPasswordReset = async (email: string) => {
     setLoading(true); setMessage(null);

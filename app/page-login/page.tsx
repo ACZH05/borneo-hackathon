@@ -28,7 +28,8 @@ const FormContent = ({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   // --- Backend Hook ---
   const { 
     sendMagicLink, 
@@ -44,6 +45,7 @@ const FormContent = ({
   // Clear messages when switching tabs
   useEffect(() => {
     setMessage(null);
+    setIsOtpSent(false);
   }, [mode, loginMethod, setMessage]);
 
   // --- Validation Logic ---
@@ -70,6 +72,9 @@ const FormContent = ({
     
     // If everything is good, tell Supabase to prep the account and send the email!
     await signUpAndSendOtp(email, password, fullName);
+
+    // 🚨 NEW: Lock the inputs so they cannot change the password!
+    setIsOtpSent(true);
   };
 
   // --- Action Handlers ---
@@ -91,16 +96,22 @@ const FormContent = ({
       else {
         const res = await loginWithPassword(email, password);
         
-        // 🚨 Just add "&& res.user" right here!
         if (res.success && res.user) { 
-          // Sync existing user to DB
+          setIsRedirecting(true); 
+
+          // 🚨 THE FIX: Manually explicitly save the token so your profile page can read it!
+          // (Note: If your custom hook returns the token as `res.token` instead of `res.session.access_token`, update the variable name below!)
+          const token = res.session?.access_token;
+          if (token) {
+            localStorage.setItem("supabase.auth.token", token);
+          }
+
           await fetch("/api/auth/sync", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id: res.user.id, email: res.user.email, name: "Resident" })
           });
           
-          // Show the alert and wait 1.5 seconds before changing pages!
           setMessage({ type: 'success', text: 'Login successful! Redirecting...' });
           setTimeout(() => {
             window.location.replace("/");
@@ -110,8 +121,17 @@ const FormContent = ({
     } else {
       // 3. SIGN UP & VERIFY OTP
       const res = await verifyOtpAndLogin(email, otp);
-      if (res.success) {
-        // Force Prisma to save their ACTUAL name from the form
+      
+      // 🚨 Added && res.user && res.session to satisfy TypeScript's null checks!
+      if (res.success && res.user && res.session) {
+        setIsRedirecting(true); 
+
+        // 🚨 Extract the token correctly from the new session object
+        const token = res.session.access_token;
+        if (token) {
+          localStorage.setItem("supabase.auth.token", token);
+        }
+
         await fetch("/api/auth/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -119,20 +139,17 @@ const FormContent = ({
         });
         
         setMessage({ type: 'success', text: 'Account verified! Logging you in...' });
-        
-        // Auto-Slide back to Sign In (As Requested!)
         handleToggle();
-
-        // Wait for the slide animation to finish, then go to Dashboard
+        
         setTimeout(() => {
           window.location.replace("/");
         }, 1500);
       }
     }
   };
-
   return (
     <div className="w-full max-w-sm mx-auto flex flex-col items-center animate-in fade-in duration-500 py-4">
+    
       {/* Brand Header */}
       <div className="flex flex-col items-center mb-5 shrink-0">
         <div className="flex items-center justify-center h-[80px] w-[80px] min-h-[80px] min-w-[80px] mb-2 shrink-0">
@@ -194,7 +211,8 @@ const FormContent = ({
                 placeholder="Hachimi" 
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all" 
+                disabled={isOtpSent}
+                className={`w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all ${isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
               />
             </div>
           </div>
@@ -209,16 +227,17 @@ const FormContent = ({
               placeholder="HachimiAI@gmail.com" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all" 
+              disabled={!isLoginMode && isOtpSent}
+              className={`w-full bg-gray-100 text-sm px-4 py-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#183d2e]/30 transition-all ${!isLoginMode && isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
             />
             {!isLoginMode && (
               <button 
                 type="button" 
                 onClick={handleSendOtp}
-                disabled={loading}
+                disabled={loading || isOtpSent}
                 className="bg-[#183d2e]/10 hover:bg-[#183d2e]/20 text-[#183d2e] text-xs font-bold px-4 rounded-xl transition-all whitespace-nowrap active:scale-95 disabled:opacity-50"
               >
-                Send OTP
+                {isOtpSent ? "OTP Sent ✓" : "Send OTP"}
               </button>
             )}
           </div>
@@ -266,11 +285,12 @@ const FormContent = ({
                   placeholder={isLoginMode ? "••••••••" : "Min. 8 chars"} 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={!isLoginMode && isOtpSent}
                   className={`w-full bg-gray-100 text-sm pl-4 pr-10 py-2.5 rounded-xl outline-none focus:ring-2 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
                     !isLoginMode && password.length > 0 && !isPasswordLongEnough 
                       ? "focus:ring-red-500 border border-red-500" 
                       : "focus:ring-[#183d2e]/30 border border-transparent"
-                  }`} 
+                  } ${!isLoginMode && isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
                 />
                 <button 
                   type="button"
@@ -296,11 +316,12 @@ const FormContent = ({
                     placeholder="••••••••" 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isOtpSent}
                     className={`w-full bg-gray-100 text-sm pl-4 pr-10 py-2.5 rounded-xl outline-none focus:ring-2 transition-all [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${
                       confirmPassword.length > 0 && !doPasswordsMatch 
                         ? "focus:ring-red-500 border border-red-500" 
                         : "focus:ring-[#183d2e]/30 border border-transparent"
-                    }`} 
+                    } ${isOtpSent ? "opacity-60 cursor-not-allowed" : ""}`} 
                   />
                   <button 
                     type="button"
@@ -326,14 +347,16 @@ const FormContent = ({
       <button 
         type="button"
         onClick={handleSubmit}
-        disabled={isSubmitDisabled}
+        // 🚨 Update this line to include isRedirecting
+        disabled={isSubmitDisabled || isRedirecting}
         className={`w-full font-medium py-3 rounded-full flex items-center justify-center gap-2 transition-all shadow-md ${
-          isSubmitDisabled 
+          isSubmitDisabled || isRedirecting
             ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
             : "bg-[#183d2e] hover:bg-[#122e22] text-white active:scale-[0.98]"
         }`}
       >
-        {loading ? (
+        {/* 🚨 Update this line to check isRedirecting */}
+        {loading || isRedirecting ? (
           "Processing..."
         ) : (
           <>
@@ -385,11 +408,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center p-4 md:p-8 pt-12 pb-20">
+    <div className="relative w-full flex flex-col items-center justify-center p-4 md:p-8 pt-12 pb-20 min-h-screen overflow-hidden">
+        {/* 2. NEW: Dedicated Background Image Layer */}
+      <div 
+        className={`
+          absolute inset-0 z-0
+          bg-cover bg-center bg-no-repeat
+          transition-opacity duration-1000
+          ${isLogin ? "opacity-70" : "opacity-50"} // Adjust OPACITY LEVEL here!
+        `}
+        style={{ backgroundImage: "url('/bg1.jpg')" }}
+      />
+      {/* 3. OPTIONAL OVERLAY: Darkens slightly for contrast (Now sits on z-10) */}
+      <div className="absolute inset-0 bg-black/20 z-10 pointer-events-none"></div>
       
+      {/* 4. CONTENT WRAPPER: Sits above background and overlay (Added z-20) */}
+      <div className="relative z-20 w-full flex flex-col items-center">
       {/* MOBILE LAYOUT */}
       <div className="w-full max-w-md mt-12 md:hidden flex flex-col items-center">
         <div className="bg-white w-full rounded-[2.5rem] shadow-xl p-8 pt-10">
+            {/* 🚨 PINNED MOBILE ARROW */}
+          <Link href="/" className="absolute top-6 left-6 flex items-center text-gray-400 hover:text-[#183d2e] transition-colors group">
+              <span className="material-symbols-outlined text-[20px] transition-transform group-hover:-translate-x-1">arrow_back</span>
+          </Link>
           <FormContent 
             mode={isLogin ? "login" : "signup"} 
             loginMethod={loginMethod}
@@ -444,6 +485,15 @@ export default function LoginPage() {
             isLogin ? "translate-x-full" : "translate-x-0"
           }`}
         >
+            {/* 🚨 PINNED DESKTOP ARROW (Right exactly where your red circle is!) */}
+          <Link 
+              href="/" 
+              className="absolute top-8 left-8 flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-[#183d2e] transition-colors group"
+          >
+              <span className="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1">arrow_back</span>
+              Back
+          </Link>
+
           <FormContent 
             mode={visibleMode} 
             loginMethod={loginMethod}
@@ -452,6 +502,7 @@ export default function LoginPage() {
             isAnimating={isAnimating}
           />
         </div>
+      </div>
       </div>
     </div>
   );

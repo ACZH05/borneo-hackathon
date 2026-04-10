@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 
 export default function Footer() {
   const pathname = usePathname();
-  if (pathname === "/page-resetPassword") return null;
+  if (pathname === "/page-resetPassword" || pathname === "/page-login") return null;
   return (
     <footer
       id="site-footer"

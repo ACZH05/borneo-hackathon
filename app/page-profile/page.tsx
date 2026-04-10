@@ -498,7 +498,14 @@ export default function ProfilePage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+        // 🚨 THE FIX: 1. Grab our custom saved token first
+        const token = localStorage.getItem("supabase.auth.token");
+        
+        // 🚨 THE FIX: 2. Force Supabase to use our token if it exists!
+        const { data: { user: authUser } } = token 
+          ? await supabase.auth.getUser(token) 
+          : await supabase.auth.getUser();
+
         if (!authUser) {
           setFetchError("Session not found. Please log in from the home page.");
           setLoading(false); return;
