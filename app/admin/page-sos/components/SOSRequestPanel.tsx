@@ -106,7 +106,7 @@ function SOSRequestPanel({ reports }: { reports: ReportSummary[] }) {
   };
 
   return (
-    <div className="flex min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex shrink-0 flex-col gap-4 p-6">
         <div className="flex justify-between">
           <span className="text-xl font-bold">Active SOS Requests</span>
@@ -132,7 +132,7 @@ function SOSRequestPanel({ reports }: { reports: ReportSummary[] }) {
           ))}
         </div>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
         {filteredReports.length > 0 ? (
           filteredReports.map((report) => (
             <RequestTab

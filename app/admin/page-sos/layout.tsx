@@ -29,11 +29,15 @@ export default async function SOSLayout({
   }));
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[1fr_2fr] overflow-hidden">
-      <div className="flex min-h-0 flex-col">
+    <div className="grid h-[calc(100vh-160px)] min-h-0 grid-cols-[1fr_2fr] overflow-hidden">
+      <div className="flex min-h-0 flex-col overflow-hidden">
         <SOSRequestPanel reports={reportSummaries} />
       </div>
-      <div className="min-h-0 overflow-y-auto">{children}</div>
+      <div className="min-h-0 overflow-hidden">
+        <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

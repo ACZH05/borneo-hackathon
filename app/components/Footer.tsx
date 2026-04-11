@@ -1,13 +1,21 @@
 "use client";
 import { usePathname } from "next/navigation";
 
-export default function Footer() {
+type FooterMode = "user-flow" | "admin-fixed";
+
+export default function Footer({ mode }: { mode: FooterMode }) {
   const pathname = usePathname();
   if (pathname === "/page-resetPassword" || pathname === "/page-login") return null;
+
+  const footerClassName =
+    mode === "admin-fixed"
+      ? "fixed inset-x-0 bottom-0 z-40 flex h-24 sm:h-20 flex-col sm:flex-row items-center justify-between gap-2 sm:gap-6 bg-surface border-t border-foreground/20 shadow-sm w-full px-4 sm:px-8"
+      : "flex flex-wrap gap-6 items-center justify-between bg-surface border-t border-foreground/20 shadow-sm w-full px-8 py-4";
+
   return (
     <footer
       id="site-footer"
-      className="flex flex-wrap gap-6 items-center justify-between bg-surface border-t border-foreground/20 shadow-sm w-full px-8 py-4"
+      className={footerClassName}
     >
       <div className="flex items-center gap-3">
         {/* --- Logo --- */}
@@ -22,7 +30,7 @@ export default function Footer() {
       </div>
 
       {/* --- Footer Links --- */}
-      <div className="flex items-center text-xs text-textGrey gap-3 ml-auto">
+      <div className="flex items-center text-xs text-textGrey gap-3 sm:ml-auto">
         <span>Privacy</span>
         <span>Terms</span>
         <span>Accessibility</span>

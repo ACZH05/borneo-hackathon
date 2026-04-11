@@ -1,8 +1,7 @@
 import "./globals.css";
 import AuthListener from "@/app/api/auth/verification/authUtils";
-import Header from "@/app/components/Header";
-import Footer from "@/app/components/Footer";
 import UserIdProvider from "./provider/UserIdProvider";
+import LayoutShell from "@/app/components/LayoutShell";
 
 // --- Metadata ---
 export const metadata = {
@@ -34,13 +33,7 @@ export default function RootLayout({
       <body className="antialiased">
         <UserIdProvider>
           <AuthListener />
-          <div className="flex flex-col min-h-full">
-            <Header />
-            <main className="flex-1"> {/* Pass the content in "page.tsx" as children to the layout */}
-              {children}
-            </main> 
-            <Footer />
-          </div>
+          <LayoutShell>{children}</LayoutShell>
         </UserIdProvider>
       </body>
     </html>

@@ -103,7 +103,7 @@ export default function AdminAlertsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full min-h-screen items-center justify-center p-6 text-sm font-semibold text-textGrey">
+      <div className="flex min-h-[calc(100vh-160px)] items-center justify-center p-6 text-sm font-semibold text-textGrey">
         Loading AI drafts...
       </div>
     );
@@ -111,7 +111,7 @@ export default function AdminAlertsPage() {
 
   if (drafts.length === 0) {
     return (
-      <div className="flex justify-center items-center bg-primary/5 h-screen min-h-[calc(100vh-80px)]">
+      <div className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-primary/5">
         <div className="flex flex-col items-center gap-4">
           <div className="flex justify-center items-center w-48 h-48 bg-textGrey/10 text-textGrey rounded-full">
             <CloudDoneOutlinedIcon fontSize="large" />
@@ -128,7 +128,7 @@ export default function AdminAlertsPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto min-h-screen">
+    <div className="mx-auto min-h-[calc(100vh-160px)] max-w-5xl p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-black flex items-center gap-3">
           <WarningAmberOutlinedIcon fontSize="large" className="text-red-500" />
