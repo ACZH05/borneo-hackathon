@@ -186,10 +186,11 @@ export default function ResourcesChecklistPage() {
       </div>
     );
   }
-  if (!isLoggedIn) return <div className="flex items-center justify-center h-full">Please log in to access the checklist.</div>;
+  if (!isLoggedIn) return <div className="flex items-center justify-center h-full p-16">Please log in to access the checklist.</div>;
 
   return (
-    <div className="relative flex flex-row xl:h-[calc(100vh-160px)] overflow-hidden">
+    // xl:h-[calc(100vh-150px)] ensure there is no gap between the body and the footer. Previously is xl:h-[calc(100vh-160px)].
+    <div className="relative flex flex-row xl:h-[calc(100vh-150px)] overflow-hidden">
       <ChecklistDrawer
         activeView={activeView}
         history={history}

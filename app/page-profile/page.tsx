@@ -609,7 +609,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="flex flex-col gap-10 p-6 md:p-10 max-w-6xl mx-auto mb-20">
+      <div className="flex flex-col gap-10 p-6 md:p-10 max-w-6xl mx-auto">
         
         {/* Header Section */}
         <div className="flex flex-wrap gap-6 items-center justify-between bg-surface border border-foreground/5 p-8 rounded-3xl shadow-sm">

@@ -103,7 +103,7 @@ export default function ChecklistDrawer({
             {/* --- Drawer --- */}
             <div 
                 className={`
-                    fixed top-0 left-0 z-50 h-full max-w-[85vw] bg-white p-10 transition-transform duration-300 ease-in-out
+                    fixed top-0 left-0 z-50 h-full max-w-[85vw] min-h-full bg-white p-10 transition-transform duration-300 ease-in-out
                     ${isOpen ? "translate-x-0" : "-translate-x-full"}
                     xl:static xl:flex-1 xl:z-0 xl:max-w-[35vw] xl:border-r xl:border-foreground/20 xl:translate-x-0 
                     overflow-y-auto
