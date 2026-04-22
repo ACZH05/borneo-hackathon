@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import {
+  ensureAlertSourceSchema,
+  formatPrismaDebugError,
+  isMissingAlertSourceColumnError,
+} from "@/app/api/alert/util/ensureAlertSourceSchema";
 import { serializeAlert } from "@/app/api/alert/util/serializeAlert";
 import { isAlertStatus } from "@/app/api/alert/util/types";
 
@@ -11,6 +16,8 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  let stage = "init";
+
   try {
     const resolvedParams = await params;
     const alertId = resolvedParams.id;
@@ -33,11 +40,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 });
     }
 
-    const updatedAlert = await prisma.alert.update({
-      where: { id: alertId },
-      data: { status },
-    });
+    let updatedAlert;
+    stage = "update";
 
+    try {
+      updatedAlert = await prisma.alert.update({
+        where: { id: alertId },
+        data: { status },
+      });
+    } catch (error) {
+      if (!isMissingAlertSourceColumnError(error)) {
+        throw error;
+      }
+
+      await ensureAlertSourceSchema((query) => prisma.$executeRawUnsafe(query));
+
+      updatedAlert = await prisma.alert.update({
+        where: { id: alertId },
+        data: { status },
+      });
+    }
+
+    stage = "serialize";
     const formattedAlert = await serializeAlert(updatedAlert);
 
     return NextResponse.json({
@@ -47,6 +71,19 @@ export async function PATCH(
     });
   } catch (error) {
     console.error("Error updating alert status:", error);
-    return NextResponse.json({ error: "Failed to update alert status." }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to update alert status.",
+        ...(process.env.NODE_ENV !== "production"
+          ? {
+              debug: {
+                stage,
+                ...formatPrismaDebugError(error),
+              },
+            }
+          : {}),
+      },
+      { status: 500 }
+    );
   }
 }
