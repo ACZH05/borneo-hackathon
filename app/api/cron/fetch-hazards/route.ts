@@ -49,6 +49,7 @@ export async function GET(request: Request) {
             data: {
               createdBy: systemAdmin.id,
               regionCode: "MY-ALL", // Defaulting to ALL for live country-wide data
+              source: "third_party_api",
               hazardType: "other",
               severity: alertData.severity || "warning", 
               title: alertData.event,

@@ -108,6 +108,7 @@ function AlertButton({ uid }: { uid: string }) {
         method: "POST",
         body: JSON.stringify({
           userId,
+          source: "user_report",
           regionCode,
           hazardType,
           severity,

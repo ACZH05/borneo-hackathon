@@ -85,6 +85,7 @@ model Alert {
   createdBy    String
   creator      User     @relation("UserAlerts", fields: [createdBy], references: [id])
   regionCode   String
+  source       String   @default("third_party_api") // Options: third_party_api | user_report
   hazardType   String   // e.g., flood, landslide
   severity     String   // Options: info | watch | warning
   title        String

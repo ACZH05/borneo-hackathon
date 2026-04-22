@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertItemInfo, AlertApiResponse, AlertStats } from "@/app/api/alert/util/types";
+import { AlertApiResponse, AlertItemInfo, AlertStats } from "@/app/api/alert/util/types";
 
 const ALERT_CACHE_TTL_MS = 30_000;
 
@@ -9,7 +9,6 @@ let alertsCache: AlertItemInfo[] | null = null;
 let cacheUpdatedAt = 0;
 let inflightRequest: Promise<AlertItemInfo[]> | null = null;
 
-// --- Compute Alert Statistics ---
 function getAlertStats(alerts: AlertItemInfo[]): AlertStats {
   const latestAlert = alerts[0] ?? null;
 
@@ -22,10 +21,12 @@ function getAlertStats(alerts: AlertItemInfo[]): AlertStats {
   };
 }
 
-// --- Read All Alerts ---
 async function fetchAllAlerts(force = false): Promise<AlertItemInfo[]> {
   const now = Date.now();
-  const isCacheValid = !force && alertsCache !== null && now - cacheUpdatedAt < ALERT_CACHE_TTL_MS;
+  const isCacheValid =
+    !force &&
+    alertsCache !== null &&
+    now - cacheUpdatedAt < ALERT_CACHE_TTL_MS;
 
   if (isCacheValid) {
     return alertsCache ?? [];
@@ -36,7 +37,6 @@ async function fetchAllAlerts(force = false): Promise<AlertItemInfo[]> {
   }
 
   inflightRequest = (async () => {
-    // 🚨 FIX 1: Explicitly ask the API for published alerts, and disable Next.js caching!
     const response = await fetch("/api/alert?status=published", { cache: "no-store" });
     if (!response.ok) {
       throw new Error("Failed to fetch alerts");
@@ -47,11 +47,7 @@ async function fetchAllAlerts(force = false): Promise<AlertItemInfo[]> {
       throw new Error("Invalid alert response");
     }
 
-    // 🚨 FIX 2: Double security layer. Strictly filter out anything that is a draft!
-    // We use 'as any' briefly just in case your AlertItemInfo type doesn't have 'status' yet.
-    const strictlyPublishedAlerts = data.alerts.filter((alert: any) => alert.status !== "draft");
-
-    alertsCache = strictlyPublishedAlerts;
+    alertsCache = data.alerts.filter((alert) => alert.status === "published");
     cacheUpdatedAt = Date.now();
     return alertsCache;
   })();
@@ -63,7 +59,6 @@ async function fetchAllAlerts(force = false): Promise<AlertItemInfo[]> {
   }
 }
 
-// --- Custom Hook to Use Alerts Data ---
 export function useAlertsData() {
   const [alerts, setAlerts] = useState<AlertItemInfo[]>(alertsCache ?? []);
   const [isLoading, setIsLoading] = useState(alertsCache === null);
@@ -93,10 +88,10 @@ export function useAlertsData() {
   const stats = useMemo(() => getAlertStats(alerts), [alerts]);
 
   return {
-    alerts,                          // List of all strictly published alerts.
-    stats,                           // Computed statistics based on current alerts.
-    isLoading,                       // Loading state for initial fetch or forced refresh.
-    error,                           // Error message if fetching fails.
-    refresh: () => loadAlerts(true), // Function to force refresh alerts data, bypassing cache.
+    alerts,
+    stats,
+    isLoading,
+    error,
+    refresh: () => loadAlerts(true),
   };
 }

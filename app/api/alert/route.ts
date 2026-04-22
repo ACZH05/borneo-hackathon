@@ -1,17 +1,31 @@
 export const dynamic = 'force-dynamic'; // <-- This stops Next.js from caching!
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { inferMalaysiaStateFromCoordinates, normalizeMalaysiaState } from '@/app/api/alert/util/malaysiaState';
+import { serializeAlert } from '@/app/api/alert/util/serializeAlert';
+import { isAlertSource, isAlertStatus } from '@/app/api/alert/util/types';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
+function parseOptionalNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
 // --- POST: Admin creates a new broadcast alert ---
 export async function POST(request: Request) {
   try {
-    const { userId, regionCode, hazardType, severity, title, body, lat, lng } = await request.json();
+    const { userId, regionCode, hazardType, severity, title, body, lat, lng, source } = await request.json();
 
     // Verify the user is an admin
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -19,21 +33,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized. Admin access required." }, { status: 403 });
     }
 
+    const nextSource = isAlertSource(source) ? source : "user_report";
     const alert = await prisma.alert.create({
       data: {
         createdBy: user.id,
         regionCode: regionCode || "ALL", // Default to broadcasting to everyone if not specified
+        source: nextSource,
         hazardType, // "flood", "landslide", etc.
         severity,   // "priority", "warning", or "monitor"
         title,
         body,
-        lat,
-        lng,
-        notes: "Generated via Aegis System"
+        lat: parseOptionalNumber(lat),
+        lng: parseOptionalNumber(lng),
+        notes: nextSource === "user_report" ? "Generated via Aegis System" : undefined,
       }
     });
 
-    return NextResponse.json({ success: true, alert }, { status: 201 });
+    const formattedAlert = await serializeAlert(alert);
+    return NextResponse.json({ success: true, alert: formattedAlert }, { status: 201 });
   } catch (error) {
     console.error("Error saving alert:", error);
     return NextResponse.json({ error: 'Failed to save alert' }, { status: 500 });
@@ -41,42 +58,40 @@ export async function POST(request: Request) {
 }
 
 // --- GET: Frontend fetches all alerts for the Feed ---
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+    const source = searchParams.get("source");
+
+    if (status && !isAlertStatus(status)) {
+      return NextResponse.json({ error: "Invalid status filter." }, { status: 400 });
+    }
+
+    if (source && !isAlertSource(source)) {
+      return NextResponse.json({ error: "Invalid source filter." }, { status: 400 });
+    }
+
+    const where: Prisma.AlertWhereInput = {};
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (source) {
+      where.source = source;
+    }
+
     const alerts = await prisma.alert.findMany({
+      where,
       orderBy: { createdAt: 'desc' }
     });
 
-    const formattedAlerts = await Promise.all(alerts.map(async (alert) => {
-      const dateObj = new Date(alert.createdAt);
-      
-      const dateStr = dateObj.toISOString().split('T')[0]; 
-      
-      const timeStr = dateObj.toLocaleTimeString('en-US', { 
-        hour: '2-digit', minute: '2-digit', hour12: true 
-      });
-      const normalizedState =
-        normalizeMalaysiaState(alert.regionCode) ??
-        await inferMalaysiaStateFromCoordinates(alert.lat, alert.lng);
-
-      return {
-        id: alert.id,
-        severity: alert.severity, 
-        hazardType: alert.hazardType, 
-        title: alert.title,
-        body: alert.body,
-        date: dateStr,
-        time: timeStr,
-        regionCode: alert.regionCode,
-        stateName: normalizedState,
-        lat: alert.lat,
-        lng: alert.lng,
-        status: alert.status 
-      };
-    }));
+    const formattedAlerts = await Promise.all(alerts.map((alert) => serializeAlert(alert)));
 
     return NextResponse.json({ success: true, alerts: formattedAlerts });
   } catch (error) {
+    console.error("Error fetching alerts:", error);
     return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 });
   }
 }
