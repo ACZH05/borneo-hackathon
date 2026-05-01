@@ -10,12 +10,14 @@ import AlertsFiltersPanel from "./components/AlertsFiltersPanel";
 import AlertsLoadingState from "./components/AlertsLoadingState";
 import AlertsPageHeader from "./components/AlertsPageHeader";
 import {
+  buildMalaysiaStateOptions,
   buildOptions,
   getRegionFilterValue,
   getStatusLabel,
   ItemFeedback,
   normalizeFilterToken,
   ORDER_OPTIONS,
+  sortHazardValues,
   sortSeverityValues,
   SOURCE_OPTIONS,
   STATUS_OPTIONS,
@@ -99,9 +101,9 @@ export default function AdminAlertsPage() {
           .map((alert) => alert.hazardType?.trim())
           .filter((value): value is string => Boolean(value))
       )
-    ).sort((left, right) => left.localeCompare(right));
+    );
 
-    return buildOptions(unique, "All Hazard Types");
+    return buildOptions(sortHazardValues(unique), "All Hazard Types");
   }, [alerts]);
 
   const stateOptions = useMemo(() => {
@@ -111,9 +113,9 @@ export default function AdminAlertsPage() {
           .map((alert) => getRegionFilterValue(alert))
           .filter((value): value is string => Boolean(value))
       )
-    ).sort((left, right) => left.localeCompare(right));
+    );
 
-    return buildOptions(unique, "All States");
+    return buildMalaysiaStateOptions(unique);
   }, [alerts]);
 
   const filteredAlerts = useMemo(() => {

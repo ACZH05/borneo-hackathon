@@ -1,4 +1,8 @@
 import { AlertItemInfo, AlertSource, AlertStatus } from "@/app/api/alert/util/types";
+import {
+  MALAYSIA_STATE_LABELS,
+  normalizeMalaysiaStateLabel,
+} from "@/app/api/alert/util/malaysiaStateList";
 
 export type SelectOption = {
   value: string;
@@ -151,6 +155,31 @@ export function sortSeverityValues(values: string[]) {
 
     return left.localeCompare(right);
   });
+}
+
+export function sortHazardValues(values: string[]) {
+  const sortedValues = [...values].sort((left, right) => left.localeCompare(right));
+  const nonOtherValues = sortedValues.filter(
+    (value) => normalizeFilterToken(value) !== "other"
+  );
+  const otherValues = sortedValues.filter(
+    (value) => normalizeFilterToken(value) === "other"
+  );
+
+  return [...nonOtherValues, ...otherValues];
+}
+
+export function buildMalaysiaStateOptions(values: string[]) {
+  const uniqueExtras = Array.from(
+    new Set(
+      values
+        .map((value) => value.trim())
+        .filter((value) => Boolean(value))
+        .filter((value) => !normalizeMalaysiaStateLabel(value))
+    )
+  ).sort((left, right) => left.localeCompare(right));
+
+  return buildOptions([...MALAYSIA_STATE_LABELS, ...uniqueExtras], "All States");
 }
 
 export function buildOptions(values: string[], fallbackLabel: string) {
