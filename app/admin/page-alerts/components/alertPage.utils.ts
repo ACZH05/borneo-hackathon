@@ -29,6 +29,10 @@ export const ORDER_OPTIONS: SelectOption[] = [
 
 const SEVERITY_ORDER = ["priority", "warning", "monitor"];
 
+export function normalizeFilterToken(value?: string | null) {
+  return value?.trim().toLowerCase() ?? "";
+}
+
 export function humanizeToken(value?: string | null) {
   if (!value) {
     return "Unknown";
@@ -130,8 +134,8 @@ export function formatCreatedLabel(alert: AlertItemInfo) {
 
 export function sortSeverityValues(values: string[]) {
   return [...values].sort((left, right) => {
-    const leftIndex = SEVERITY_ORDER.indexOf(left.toLowerCase());
-    const rightIndex = SEVERITY_ORDER.indexOf(right.toLowerCase());
+    const leftIndex = SEVERITY_ORDER.indexOf(normalizeFilterToken(left));
+    const rightIndex = SEVERITY_ORDER.indexOf(normalizeFilterToken(right));
 
     if (leftIndex >= 0 && rightIndex >= 0) {
       return leftIndex - rightIndex;

@@ -14,6 +14,7 @@ import {
   getRegionFilterValue,
   getStatusLabel,
   ItemFeedback,
+  normalizeFilterToken,
   ORDER_OPTIONS,
   sortSeverityValues,
   SOURCE_OPTIONS,
@@ -74,7 +75,7 @@ export default function AdminAlertsPage() {
     const unique = Array.from(
       new Set(
         alerts
-          .map((alert) => alert.severity?.trim())
+          .map((alert) => normalizeFilterToken(alert.severity))
           .filter((value): value is string => Boolean(value))
       )
     );
@@ -110,7 +111,9 @@ export default function AdminAlertsPage() {
     const nextAlerts = alerts.filter((alert) => {
       const matchesSource = sourceFilter === "all" || alert.source === sourceFilter;
       const matchesStatus = statusFilter === "all" || alert.status === statusFilter;
-      const matchesSeverity = severityFilter === "all" || alert.severity === severityFilter;
+      const matchesSeverity =
+        severityFilter === "all" ||
+        normalizeFilterToken(alert.severity) === normalizeFilterToken(severityFilter);
       const matchesHazard = hazardFilter === "all" || alert.hazardType === hazardFilter;
       const matchesState =
         stateFilter === "all" || getRegionFilterValue(alert) === stateFilter;
