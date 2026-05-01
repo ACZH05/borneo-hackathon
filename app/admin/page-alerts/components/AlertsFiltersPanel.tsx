@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import { SelectOption } from "./alertPage.utils";
 
@@ -32,23 +35,84 @@ type AlertsFiltersPanelProps = {
 };
 
 function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (!menuRef.current?.contains(target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
   return (
-    <label className="flex min-w-[210px] flex-1 flex-col gap-2 rounded-[1.75rem] border border-foreground/10 bg-linear-to-r from-white to-primary/5 px-4 py-3 shadow-sm">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-textGrey">
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="bg-transparent text-sm font-semibold text-foreground outline-none"
+    <div ref={menuRef} className="relative min-w-[210px] flex-1">
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex w-full items-center justify-between rounded-[1.75rem] border border-foreground/10 bg-linear-to-r from-white to-primary/5 px-4 py-3 text-left shadow-sm transition hover:border-primary/30 hover:shadow-md"
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <span className="flex min-w-0 flex-col">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-textGrey">
+            {label}
+          </span>
+          <span className="truncate text-sm font-semibold text-foreground">
+            {selectedOption?.label ?? options[0]?.label ?? "Select"}
+          </span>
+        </span>
+        <span
+          className={`material-symbols-outlined text-textGrey transition ${
+            isOpen ? "rotate-180 text-primary" : ""
+          }`}
+        >
+          expand_more
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-20 overflow-hidden rounded-4xl border border-foreground/10 bg-white shadow-2xl">
+          <div className="max-h-72 overflow-y-auto p-2">
+            {options.map((option) => {
+              const isActive = option.value === value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-full px-4 py-3 text-left text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-primary text-surface shadow-sm"
+                      : "text-foreground hover:bg-primary/8"
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  {isActive && (
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      check
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
