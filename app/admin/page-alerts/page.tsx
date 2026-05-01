@@ -37,6 +37,15 @@ export default function AdminAlertsPage() {
   const [stateFilter, setStateFilter] = useState("all");
   const [orderFilter, setOrderFilter] = useState("newest");
 
+  const handleResetFilters = useCallback(() => {
+    setSourceFilter("all");
+    setStatusFilter("all");
+    setSeverityFilter("all");
+    setHazardFilter("all");
+    setStateFilter("all");
+    setOrderFilter("newest");
+  }, []);
+
   const loadAlerts = useCallback(async () => {
     try {
       setLoading(true);
@@ -243,8 +252,6 @@ export default function AdminAlertsPage() {
       />
 
       <AlertsFiltersPanel
-        totalAlerts={alerts.length}
-        visibleAlerts={filteredAlerts.length}
         sourceFilter={sourceFilter}
         statusFilter={statusFilter}
         severityFilter={severityFilter}
@@ -263,6 +270,7 @@ export default function AdminAlertsPage() {
         onHazardChange={setHazardFilter}
         onStateChange={setStateFilter}
         onOrderChange={setOrderFilter}
+        onResetFilters={handleResetFilters}
       />
 
       {error && !hasAlerts ? (

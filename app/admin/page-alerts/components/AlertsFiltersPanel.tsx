@@ -12,8 +12,6 @@ type FilterSelectProps = {
 };
 
 type AlertsFiltersPanelProps = {
-  totalAlerts: number;
-  visibleAlerts: number;
   sourceFilter: string;
   statusFilter: string;
   severityFilter: string;
@@ -32,6 +30,7 @@ type AlertsFiltersPanelProps = {
   onHazardChange: (value: string) => void;
   onStateChange: (value: string) => void;
   onOrderChange: (value: string) => void;
+  onResetFilters: () => void;
 };
 
 function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
@@ -117,8 +116,6 @@ function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
 }
 
 export default function AlertsFiltersPanel({
-  totalAlerts,
-  visibleAlerts,
   sourceFilter,
   statusFilter,
   severityFilter,
@@ -137,6 +134,7 @@ export default function AlertsFiltersPanel({
   onHazardChange,
   onStateChange,
   onOrderChange,
+  onResetFilters,
 }: AlertsFiltersPanelProps) {
   return (
     <div className="rounded-[2rem] border border-foreground/10 bg-white p-6 shadow-sm">
@@ -153,9 +151,13 @@ export default function AlertsFiltersPanel({
           </div>
         </div>
 
-        <span className="text-sm font-semibold text-textGrey">
-          Showing {visibleAlerts} of {totalAlerts} alerts
-        </span>
+        <button
+          type="button"
+          onClick={onResetFilters}
+          className="rounded-full border border-foreground/10 px-4 py-2 text-sm font-semibold text-textGrey transition hover:border-primary/30 hover:bg-primary/8 hover:text-primary"
+        >
+          Reset filter
+        </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
