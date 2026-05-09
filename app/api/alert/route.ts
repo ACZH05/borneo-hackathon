@@ -111,7 +111,7 @@ export async function GET(request: Request) {
     }
 
     if (source) {
-      where.source = source;
+      (where as any).source = source;
     }
 
     let alerts;

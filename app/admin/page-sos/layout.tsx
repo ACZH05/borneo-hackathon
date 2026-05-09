@@ -13,7 +13,7 @@ export default async function SOSLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const response = await fetch(`${process.env.URL}/api/reports`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/reports`, {
     method: "GET",
     cache: "no-store",
   });

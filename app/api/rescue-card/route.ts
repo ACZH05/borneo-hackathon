@@ -17,7 +17,7 @@ function normalizeEmail(value?: string | null) {
 }
 
 function buildConsentLink(token: string) {
-  const appUrl = process.env.URL || "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   return `${appUrl}/emergency-contact-consent?token=${encodeURIComponent(token)}`;
 }
 
