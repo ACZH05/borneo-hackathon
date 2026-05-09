@@ -13,7 +13,7 @@ export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isSessionReady, setIsSessionReady] = useState(false);
+  const [, setIsSessionReady] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -41,6 +41,15 @@ export default function UpdatePasswordPage() {
       }
 
       if (!hash.includes("access_token")) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.access_token) {
+          localStorage.setItem("supabase.auth.token", session.access_token);
+          setIsSessionReady(true);
+        }
+
         return;
       }
 
@@ -70,12 +79,23 @@ export default function UpdatePasswordPage() {
     };
 
     void prepareRecoverySession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session?.access_token) {
+        localStorage.setItem("supabase.auth.token", session.access_token);
+        setIsSessionReady(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // --- Validation ---
   const isPasswordLongEnough = password.length >= 8;
   const doPasswordsMatch = password === confirmPassword;
-  const isSubmitDisabled = loading || !isSessionReady || !password || !confirmPassword || !isPasswordLongEnough || !doPasswordsMatch;
+  const isSubmitDisabled = loading || !password || !confirmPassword || !isPasswordLongEnough || !doPasswordsMatch;
 
   // --- Action Handler ---
   const handleUpdatePassword = async () => {
