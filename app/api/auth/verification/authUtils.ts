@@ -14,6 +14,8 @@ function getErrorMessage(error: unknown) {
 export default function AuthListener() {
   useEffect(() => {
     const syncUser = async () => {
+      if (window.location.pathname === "/page-resetPassword") return;
+
       const hash = window.location.hash;
       if (!hash || !hash.includes("access_token")) return;
 

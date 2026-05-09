@@ -13,6 +13,7 @@ export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSessionReady, setIsSessionReady] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -32,6 +33,7 @@ export default function UpdatePasswordPage() {
 
         if (data.session?.access_token) {
           localStorage.setItem("supabase.auth.token", data.session.access_token);
+          setIsSessionReady(true);
         }
 
         window.history.replaceState(null, "", window.location.pathname);
@@ -51,10 +53,17 @@ export default function UpdatePasswordPage() {
       }
 
       if (token && refreshToken) {
-        await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: token,
           refresh_token: refreshToken,
         });
+
+        if (error) {
+          setMessage({ type: "error", text: error.message });
+          return;
+        }
+
+        setIsSessionReady(true);
       }
 
       window.history.replaceState(null, "", window.location.pathname);
@@ -66,7 +75,7 @@ export default function UpdatePasswordPage() {
   // --- Validation ---
   const isPasswordLongEnough = password.length >= 8;
   const doPasswordsMatch = password === confirmPassword;
-  const isSubmitDisabled = loading || !password || !confirmPassword || !isPasswordLongEnough || !doPasswordsMatch;
+  const isSubmitDisabled = loading || !isSessionReady || !password || !confirmPassword || !isPasswordLongEnough || !doPasswordsMatch;
 
   // --- Action Handler ---
   const handleUpdatePassword = async () => {
@@ -74,26 +83,21 @@ export default function UpdatePasswordPage() {
     setMessage(null);
 
     try {
-      // 1. Grab the token your AuthListener saved when the page loaded!
-      const token = localStorage.getItem("supabase.auth.token");
-      
-      if (!token) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
         throw new Error("Invalid or expired session. Please click the reset link in your email again.");
       }
 
-      // 2. Use raw fetch to update the password, matching your exact architecture
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ password })
-      });
+      const { data, error } = await supabase.auth.updateUser({ password });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error_description || data.msg || "Failed to update password.");
+      if (error) throw new Error(error.message || "Failed to update password.");
+
+      if (data.user) {
+        localStorage.setItem("supabase.auth.token", session.access_token);
+      }
 
       setMessage({ type: 'success', text: "Password updated successfully! Redirecting..." });
 

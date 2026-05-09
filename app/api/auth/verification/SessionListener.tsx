@@ -14,6 +14,10 @@ export default function SessionListener() {
   const [remainingTime, setRemainingTime] = useState<number>(0);
 
   useEffect(() => {
+    if (window.location.pathname === "/page-resetPassword") {
+      return;
+    }
+
     // Get the token to check if user is logged in
     const token = typeof window !== 'undefined' ? localStorage.getItem('supabase.auth.token') : null;
     
