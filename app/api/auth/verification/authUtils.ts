@@ -15,6 +15,9 @@ export default function AuthListener() {
 
       const params = new URLSearchParams(hash.replace("#", "?"));
       const token = params.get("access_token");
+      
+      // 🚨 FIX: Check what kind of link they clicked (magiclink vs recovery)
+      const type = params.get("type"); 
 
       if (token) {
         localStorage.setItem("supabase.auth.token", token);
@@ -44,8 +47,15 @@ export default function AuthListener() {
           console.error("Failed to sync user:", error);
         } finally {
           window.history.replaceState(null, "", window.location.pathname);
-          alert("Login successful!");
-          requestUserLocation();
+          
+          // 🚨 FIX: If it is a password reset, stay silent and let them reset it!
+          if (type === "recovery") {
+            console.log("Password recovery mode active.");
+          } else {
+            // Otherwise, it's a normal login!
+            alert("Login successful!");
+            requestUserLocation();
+          }
         }
       }
     };
