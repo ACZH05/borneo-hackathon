@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { requestUserLocation } from "@/app/lib/permission/location";
 import { supabase } from "@/app/lib/database/supabase";
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Something went wrong.";
+}
+
 // ==========================================
 // 1. AUTH LISTENER (Magic Link & Redirects)
 // ==========================================
@@ -93,15 +97,6 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  const headers = {
-    "Content-Type": "application/json",
-    "apikey": SUPABASE_ANON_KEY,
-    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-  };
-
   // --- A. MAGIC LINK (STRICTLY LOGIN ONLY) ---
   const sendMagicLink = async (email: string) => {
     if (!email) return;
@@ -135,7 +130,7 @@ export function Login() {
 
       setMessage({ type: 'success', text: "Check your email for the magic link!" });
       return true;
-    } catch (error: any) {
+    } catch {
       setMessage({ type: 'error', text: "Failed to send link." });
       return false;
     } finally {
@@ -161,8 +156,8 @@ export function Login() {
       }
 
       return { success: true, user: data.user, session: data.session };
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      setMessage({ type: 'error', text: getErrorMessage(error) });
       return { success: false };
     } finally {
       setLoading(false);
@@ -201,8 +196,8 @@ export function Login() {
 
       setMessage({ type: 'success', text: 'OTP sent! Check your inbox.' });
       return { success: true };
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      setMessage({ type: 'error', text: getErrorMessage(error) });
       return { success: false };
     } finally {
       setLoading(false);
@@ -233,8 +228,8 @@ export function Login() {
       requestUserLocation();
       
       return { success: true, user: data.user, session: data.session };
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      setMessage({ type: 'error', text: getErrorMessage(error) });
       return { success: false };
     } finally {
       setLoading(false);
@@ -260,16 +255,17 @@ export function Login() {
       }
 
       // 🚨 2. If they DO exist, proceed with the official Supabase reset
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/page-resetPassword`, // Adjust to match your URL
+        redirectTo: `${siteUrl}/page-resetPassword`,
       });
 
       if (error) throw new Error(error.message);
 
       setMessage({ type: 'success', text: 'Password reset link sent! Check your inbox.' });
       return { success: true };
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      setMessage({ type: 'error', text: getErrorMessage(error) });
       return { success: false };
     } finally {
       setLoading(false);

@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { supabase } from "@/app/lib/database/supabase";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Something went wrong.";
+}
 
 export default function UpdatePasswordPage() {
   // --- States ---
@@ -9,6 +15,53 @@ export default function UpdatePasswordPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const prepareRecoverySession = async () => {
+      const hash = window.location.hash;
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get("code");
+
+      if (code) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          setMessage({ type: "error", text: error.message });
+          return;
+        }
+
+        if (data.session?.access_token) {
+          localStorage.setItem("supabase.auth.token", data.session.access_token);
+        }
+
+        window.history.replaceState(null, "", window.location.pathname);
+        return;
+      }
+
+      if (!hash.includes("access_token")) {
+        return;
+      }
+
+      const params = new URLSearchParams(hash.replace("#", "?"));
+      const token = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (token) {
+        localStorage.setItem("supabase.auth.token", token);
+      }
+
+      if (token && refreshToken) {
+        await supabase.auth.setSession({
+          access_token: token,
+          refresh_token: refreshToken,
+        });
+      }
+
+      window.history.replaceState(null, "", window.location.pathname);
+    };
+
+    void prepareRecoverySession();
+  }, []);
 
   // --- Validation ---
   const isPasswordLongEnough = password.length >= 8;
@@ -49,8 +102,8 @@ export default function UpdatePasswordPage() {
         window.location.replace("/");
       }, 2000);
 
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      setMessage({ type: 'error', text: getErrorMessage(error) });
     } finally {
       setLoading(false);
     }
@@ -62,8 +115,8 @@ export default function UpdatePasswordPage() {
         
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-6 shrink-0">
-          <div className="flex items-center justify-center h-[80px] w-[80px] min-h-[80px] min-w-[80px] mb-2 shrink-0">
-            <img src="/favicon.ico" alt="logo" className="h-full w-full object-contain" />
+          <div className="flex items-center justify-center h-20 w-20 min-h-20 min-w-20 mb-2 shrink-0">
+            <Image src="/favicon.ico" alt="logo" width={80} height={80} className="h-full w-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Hachimi AI</h1>
         </div>
@@ -132,7 +185,7 @@ export default function UpdatePasswordPage() {
               />
             </div>
             {confirmPassword.length > 0 && !doPasswordsMatch && (
-              <span className="text-[10px] text-red-500 font-semibold pl-3 mt-1 block">Doesn't match</span>
+              <span className="text-[10px] text-red-500 font-semibold pl-3 mt-1 block">Doesn&apos;t match</span>
             )}
           </div>
         </div>
