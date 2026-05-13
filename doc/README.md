@@ -1,8 +1,8 @@
 # Required Information
 
-- Website URL: https://borneo-hackathon-web-beige.vercel.app/
-- Demo Video URL: https://youtu.be/FFtnrWynUGQ
-- Final Report URL: https://drive.google.com/file/d/1MfYfEInGYYWXxgn2inuS9eN2ZNnaedgs/view?usp=sharing
+- Website URL: https://hachimi-ai.site/
+- Demo Video URL (Before Finalist): https://youtu.be/FFtnrWynUGQ
+- Final Report URL (Before Finalist): https://drive.google.com/file/d/1MfYfEInGYYWXxgn2inuS9eN2ZNnaedgs/view?usp=sharing
 
 <br />
 
@@ -105,6 +105,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
 URL="http://localhost:3000"
 CRON_SECRET="YOUR_CRON_SECRET"
 WEATHER_API_KEY="YOUR_WEATHERAPI_KEY"
+
+# Email ("Resend" Service)
+EMAIL_FROM="BorNEO AI noreply@hachimi-ai.site"
+RESEND_API_KEY="YOUR_RESEND_API_KEY"
 ```
 
 Notes:
